@@ -18,14 +18,8 @@ A Telegram bot for managing worship service planning and attendance tracking wit
 
 ## Setup Instructions
 
-### 1. Create a Telegram Bot
 
-1. Open Telegram and search for [@BotFather](https://t.me/botfather)
-2. Send `/newbot` command
-3. Follow the instructions to create your bot
-4. Save the bot token provided by BotFather
-
-### 2. Configure the Application
+### 1. Configure the Application
 
 1. Clone the repository
 2. Navigate to the project directory
@@ -41,7 +35,7 @@ A Telegram bot for managing worship service planning and attendance tracking wit
 }
 ```
 
-### 3. Run the Application
+### 2. Run the Application
 
 ```bash
 # Navigate to the API project
