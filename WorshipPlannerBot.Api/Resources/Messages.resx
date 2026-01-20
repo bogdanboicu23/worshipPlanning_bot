@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Common Messages -->
+  <data name="Welcome" xml:space="preserve">
+    <value>Welcome to Worship Planner Bot! 🎵
+
+Use /help to see available commands.</value>
+  </data>
+  <data name="UnknownCommand" xml:space="preserve">
+    <value>Unknown command. Use /help to see available commands.</value>
+  </data>
+  <data name="AdminOnly" xml:space="preserve">
+    <value>⚠️ This command is only available to administrators.</value>
+  </data>
+  <data name="CancelSuccess" xml:space="preserve">
+    <value>✅ Operation cancelled.</value>
+  </data>
+
+  <!-- Help Command -->
+  <data name="HelpTitle" xml:space="preserve">
+    <value>📋 Available Commands</value>
+  </data>
+  <data name="HelpRegister" xml:space="preserve">
+    <value>Select your ministry roles</value>
+  </data>
+  <data name="HelpMyRoles" xml:space="preserve">
+    <value>View your assigned roles</value>
+  </data>
+  <data name="HelpEvents" xml:space="preserve">
+    <value>View upcoming events</value>
+  </data>
+  <data name="HelpLanguage" xml:space="preserve">
+    <value>Change language</value>
+  </data>
+  <data name="AdminCommands" xml:space="preserve">
+    <value>Admin Commands:</value>
+  </data>
+  <data name="HelpNewEvent" xml:space="preserve">
+    <value>Create a new worship service</value>
+  </data>
+  <data name="HelpDeleteEvent" xml:space="preserve">
+    <value>Delete an event</value>
+  </data>
+  <data name="HelpRemind" xml:space="preserve">
+    <value>Send reminder to attendees</value>
+  </data>
+
+  <!-- Registration -->
+  <data name="RegisterPrompt" xml:space="preserve">
+    <value>🎵 Please select your worship team roles:
+
+Tap on each role you can serve in, then click Done when finished.</value>
+  </data>
+  <data name="RegistrationComplete" xml:space="preserve">
+    <value>✅ Registration complete! Your roles have been saved.</value>
+  </data>
+  <data name="RoleDone" xml:space="preserve">
+    <value>✅ Done</value>
+  </data>
+
+  <!-- Events -->
+  <data name="NoUpcomingEvents" xml:space="preserve">
+    <value>📅 No upcoming events scheduled.</value>
+  </data>
+  <data name="EventCreatedSuccess" xml:space="preserve">
+    <value>✅ Event created successfully!</value>
+  </data>
+  <data name="CreateEventPrompt" xml:space="preserve">
+    <value>📅 *Create New Worship Service*
+
+Please provide event details in the following format:
+
+Title
+Date and Time (DD/MM/YYYY HH:MM)
+Location
+Description (optional)
+Songs (optional, one per line)
+
+Example:
+Sunday Worship Service
+25/01/2025 10:30
+Main Hall
+Regular Sunday morning worship
+Amazing Grace
+How Great Is Our God
+10,000 Reasons</value>
+  </data>
+  <data name="InvalidEventFormat" xml:space="preserve">
+    <value>❌ Invalid format. Please provide at least:
+
+Title
+Date/Time (DD/MM/YYYY HH:MM)
+Location
+
+Or type /cancel to cancel event creation.</value>
+  </data>
+  <data name="InvalidDateFormat" xml:space="preserve">
+    <value>❌ Invalid date format. Please use DD/MM/YYYY HH:MM</value>
+  </data>
+  <data name="SelectEventToDelete" xml:space="preserve">
+    <value>🗑 *Select an event to delete:*</value>
+  </data>
+  <data name="NoEventsToDelete" xml:space="preserve">
+    <value>📭 No upcoming events to delete.</value>
+  </data>
+  <data name="ConfirmDeletion" xml:space="preserve">
+    <value>⚠️ *Confirm Deletion*
+
+Are you sure you want to delete:</value>
+  </data>
+  <data name="EventDeleted" xml:space="preserve">
+    <value>✅ Event '{0}' has been deleted successfully.</value>
+  </data>
+  <data name="DeletionCancelled" xml:space="preserve">
+    <value>Deletion cancelled.</value>
+  </data>
+  <data name="EventHasAttendees" xml:space="preserve">
+    <value>⚠️ This event has {0} attendance responses.</value>
+  </data>
+
+  <!-- Attendance -->
+  <data name="AttendanceYes" xml:space="preserve">
+    <value>✅ You're attending!</value>
+  </data>
+  <data name="AttendanceNo" xml:space="preserve">
+    <value>❌ You're not attending</value>
+  </data>
+  <data name="AttendanceMaybe" xml:space="preserve">
+    <value>❓ You're marked as maybe</value>
+  </data>
+  <data name="PleaseConfirmAttendance" xml:space="preserve">
+    <value>✅ Please confirm your attendance below:</value>
+  </data>
+  <data name="ConfirmedLabel" xml:space="preserve">
+    <value>✅ *Confirmed ({0})*</value>
+  </data>
+  <data name="MaybeLabel" xml:space="preserve">
+    <value>🤔 *Maybe ({0})*</value>
+  </data>
+  <data name="CantAttendLabel" xml:space="preserve">
+    <value>❌ *Can't Attend ({0})*</value>
+  </data>
+
+  <!-- Group Messages -->
+  <data name="NewEventAnnouncement" xml:space="preserve">
+    <value>📢 *New Worship Service*</value>
+  </data>
+  <data name="EventCancelled" xml:space="preserve">
+    <value>❌ *Event Cancelled*</value>
+  </data>
+  <data name="NextEvent" xml:space="preserve">
+    <value>⏭ *Next Event*</value>
+  </data>
+  <data name="EventStatus" xml:space="preserve">
+    <value>📊 *Event Status: {0}*</value>
+  </data>
+  <data name="AttendanceFor" xml:space="preserve">
+    <value>📋 *Attendance for: {0}*</value>
+  </data>
+
+  <!-- Roles -->
+  <data name="YourRoles" xml:space="preserve">
+    <value>Your current roles:</value>
+  </data>
+  <data name="NoRolesAssigned" xml:space="preserve">
+    <value>You haven't selected any roles yet. Use /register to select your roles.</value>
+  </data>
+  <data name="RolesNeeded" xml:space="preserve">
+    <value>⚠️ *Roles Still Needed*</value>
+  </data>
+
+  <!-- Buttons -->
+  <data name="ButtonYes" xml:space="preserve">
+    <value>✅ Yes</value>
+  </data>
+  <data name="ButtonNo" xml:space="preserve">
+    <value>❌ No</value>
+  </data>
+  <data name="ButtonMaybe" xml:space="preserve">
+    <value>🤔 Maybe</value>
+  </data>
+  <data name="ButtonCancel" xml:space="preserve">
+    <value>❌ Cancel</value>
+  </data>
+  <data name="ButtonDelete" xml:space="preserve">
+    <value>✅ Yes, Delete</value>
+  </data>
+  <data name="ButtonViewStatus" xml:space="preserve">
+    <value>📊 View Status</value>
+  </data>
+
+  <!-- Setlist -->
+  <data name="Setlist" xml:space="preserve">
+    <value>🎶 *Setlist:*</value>
+  </data>
+
+  <!-- Time -->
+  <data name="TimeIn" xml:space="preserve">
+    <value>In {0}</value>
+  </data>
+  <data name="TimeDaysHours" xml:space="preserve">
+    <value>{0} days, {1} hours</value>
+  </data>
+  <data name="TimeHoursMinutes" xml:space="preserve">
+    <value>{0} hours, {1} minutes</value>
+  </data>
+
+  <!-- Language -->
+  <data name="SelectLanguage" xml:space="preserve">
+    <value>🌐 Select your language:</value>
+  </data>
+  <data name="LanguageChanged" xml:space="preserve">
+    <value>✅ Language changed to English</value>
+  </data>
+
+  <!-- Role Names -->
+  <data name="Role.Vocals" xml:space="preserve">
+    <value>Vocals</value>
+  </data>
+  <data name="Role.Guitar" xml:space="preserve">
+    <value>Guitar</value>
+  </data>
+  <data name="Role.Bass" xml:space="preserve">
+    <value>Bass</value>
+  </data>
+  <data name="Role.Drums" xml:space="preserve">
+    <value>Drums</value>
+  </data>
+  <data name="Role.Percussion" xml:space="preserve">
+    <value>Percussion</value>
+  </data>
+  <data name="Role.Keyboard" xml:space="preserve">
+    <value>Keyboard</value>
+  </data>
+  <data name="Role.SoundTech" xml:space="preserve">
+    <value>Sound Tech</value>
+  </data>
+  <data name="Role.Media" xml:space="preserve">
+    <value>Media</value>
+  </data>
+  <data name="Role.Prayer" xml:space="preserve">
+    <value>Prayer</value>
+  </data>
+
+  <!-- Admin Panel -->
+  <data name="AdminPanel" xml:space="preserve">
+    <value>🛠 *Admin Panel*
+
+Available admin actions:
+/newevent - Create a new worship service
+/deleteevent - Delete an event
+/remind - Send reminder for next event
+/makeadmin @username - Grant admin privileges
+/removeadmin @username - Revoke admin privileges</value>
+  </data>
+
+  <!-- Reminders -->
+  <data name="ReminderSent" xml:space="preserve">
+    <value>✅ Reminder sent to {0} confirmed attendees for:</value>
+  </data>
+  <data name="NoConfirmedAttendees" xml:space="preserve">
+    <value>⚠️ No confirmed attendees for '{0}'</value>
+  </data>
+  <data name="CustomReminderPrompt" xml:space="preserve">
+    <value>📝 Please type the custom reminder message you want to send to all confirmed attendees of the next event.
+
+Type /cancel to cancel.</value>
+  </data>
+
+  <!-- Additional Messages -->
+  <data name="EventReminder" xml:space="preserve">
+    <value>Event Reminder</value>
+  </data>
+  <data name="EventTitle" xml:space="preserve">
+    <value>Event</value>
+  </data>
+  <data name="MessageFromAdmin" xml:space="preserve">
+    <value>Message from Admin</value>
+  </data>
+  <data name="NoConfirmationsYet" xml:space="preserve">
+    <value>No confirmations yet</value>
+  </data>
+
+  <!-- Event Creation Wizard -->
+  <data name="WizardTemplateSunday" xml:space="preserve">
+    <value>Sunday Service</value>
+  </data>
+  <data name="WizardTemplateRehearsal" xml:space="preserve">
+    <value>Rehearsal</value>
+  </data>
+  <data name="EventNotFound" xml:space="preserve">
+    <value>Event not found</value>
+  </data>
+  <data name="StatusSentPrivate" xml:space="preserve">
+    <value>Status details sent in private message</value>
+  </data>
+  <data name="AttendanceSummary" xml:space="preserve">
+    <value>📊 *Attendance Summary*</value>
+  </data>
+  <data name="RoleCoverage" xml:space="preserve">
+    <value>📋 *Role Coverage*</value>
+  </data>
+  <data name="WizardSelectDate" xml:space="preserve">
+    <value>📅 *Select Date*</value>
+  </data>
+  <data name="WizardSelectTime" xml:space="preserve">
+    <value>🕐 *Select Time*</value>
+  </data>
+  <data name="WizardSelectLocation" xml:space="preserve">
+    <value>📍 *Select Location*</value>
+  </data>
+  <data name="WizardAddSongs" xml:space="preserve">
+    <value>🎶 *Add Songs?*</value>
+  </data>
+  <data name="WizardConfirm" xml:space="preserve">
+    <value>✅ *Confirm Event Creation*</value>
+  </data>
+  <data name="WizardEnterTitle" xml:space="preserve">
+    <value>📝 *Enter Event Title*</value>
+  </data>
+  <data name="WizardEnterDate" xml:space="preserve">
+    <value>📅 *Enter Date*</value>
+  </data>
+  <data name="WizardEnterTime" xml:space="preserve">
+    <value>🕐 *Enter Time*</value>
+  </data>
+  <data name="WizardEnterLocation" xml:space="preserve">
+    <value>📍 *Enter Location*</value>
+  </data>
+  <data name="WizardEnterSongs" xml:space="preserve">
+    <value>🎵 *Enter Songs*</value>
+  </data>
+  <data name="WizardBack" xml:space="preserve">
+    <value>◀️ Back</value>
+  </data>
+  <data name="WizardCustomDate" xml:space="preserve">
+    <value>📅 Custom Date</value>
+  </data>
+  <data name="WizardCustomTime" xml:space="preserve">
+    <value>🕐 Custom Time</value>
+  </data>
+  <data name="WizardCustomLocation" xml:space="preserve">
+    <value>📍 Custom Location</value>
+  </data>
+  <data name="WizardAddSongsButton" xml:space="preserve">
+    <value>🎵 Add Songs</value>
+  </data>
+  <data name="WizardSkipSongs" xml:space="preserve">
+    <value>⏭️ Skip Songs</value>
+  </data>
+  <data name="WizardCreateEvent" xml:space="preserve">
+    <value>✅ Create Event</value>
+  </data>
+  <data name="WizardEdit" xml:space="preserve">
+    <value>✏️ Edit</value>
+  </data>
+  <data name="ViewStatusButton" xml:space="preserve">
+    <value>📊 View Status</value>
+  </data>
+</root>

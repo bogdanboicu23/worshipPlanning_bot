@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Common Messages -->
+  <data name="Welcome" xml:space="preserve">
+    <value>Bun venit la Worship Planner Bot! 🎵
+
+Folosește /help pentru a vedea comenzile disponibile.</value>
+  </data>
+  <data name="UnknownCommand" xml:space="preserve">
+    <value>Comandă necunoscută. Folosește /help pentru a vedea comenzile disponibile.</value>
+  </data>
+  <data name="AdminOnly" xml:space="preserve">
+    <value>⚠️ Această comandă este disponibilă doar pentru administratori.</value>
+  </data>
+  <data name="CancelSuccess" xml:space="preserve">
+    <value>✅ Operațiune anulată.</value>
+  </data>
+
+  <!-- Help Command -->
+  <data name="HelpTitle" xml:space="preserve">
+    <value>📋 Comenzi Disponibile</value>
+  </data>
+  <data name="HelpRegister" xml:space="preserve">
+    <value>Selectează rolurile tale în slujire</value>
+  </data>
+  <data name="HelpMyRoles" xml:space="preserve">
+    <value>Vezi rolurile tale</value>
+  </data>
+  <data name="HelpEvents" xml:space="preserve">
+    <value>Vezi evenimentele viitoare</value>
+  </data>
+  <data name="HelpLanguage" xml:space="preserve">
+    <value>Schimbă limba</value>
+  </data>
+  <data name="AdminCommands" xml:space="preserve">
+    <value>Comenzi Admin:</value>
+  </data>
+  <data name="HelpNewEvent" xml:space="preserve">
+    <value>Creează un nou serviciu de închinare</value>
+  </data>
+  <data name="HelpDeleteEvent" xml:space="preserve">
+    <value>Șterge un eveniment</value>
+  </data>
+  <data name="HelpRemind" xml:space="preserve">
+    <value>Trimite memento participanților</value>
+  </data>
+
+  <!-- Registration -->
+  <data name="RegisterPrompt" xml:space="preserve">
+    <value>🎵 Te rog selectează rolurile tale în echipa de închinare:
+
+Apasă pe fiecare rol în care poți sluji, apoi apasă Gata când ai terminat.</value>
+  </data>
+  <data name="RegistrationComplete" xml:space="preserve">
+    <value>✅ Înregistrare completă! Rolurile tale au fost salvate.</value>
+  </data>
+  <data name="RoleDone" xml:space="preserve">
+    <value>✅ Gata</value>
+  </data>
+
+  <!-- Events -->
+  <data name="NoUpcomingEvents" xml:space="preserve">
+    <value>📅 Nu sunt evenimente programate.</value>
+  </data>
+  <data name="EventCreatedSuccess" xml:space="preserve">
+    <value>✅ Eveniment creat cu succes!</value>
+  </data>
+  <data name="CreateEventPrompt" xml:space="preserve">
+    <value>📅 *Creează Serviciu de Închinare Nou*
+
+Te rog furnizează detaliile evenimentului în următorul format:
+
+Titlu
+Dată și Oră (ZZ/LL/AAAA HH:MM)
+Locație
+Descriere (opțional)
+Cântări (opțional, unul pe linie)
+
+Exemplu:
+Serviciu de Închinare Duminică
+25/01/2025 10:30
+Sala Mare
+Serviciu regulat de duminică dimineața
+Har Minunat
+Cât de Mare Este Dumnezeul Nostru
+10,000 de Motive</value>
+  </data>
+  <data name="InvalidEventFormat" xml:space="preserve">
+    <value>❌ Format invalid. Te rog furnizează cel puțin:
+
+Titlu
+Dată/Oră (ZZ/LL/AAAA HH:MM)
+Locație
+
+Sau tastează /cancel pentru a anula crearea evenimentului.</value>
+  </data>
+  <data name="InvalidDateFormat" xml:space="preserve">
+    <value>❌ Format dată invalid. Te rog folosește ZZ/LL/AAAA HH:MM</value>
+  </data>
+  <data name="SelectEventToDelete" xml:space="preserve">
+    <value>🗑 *Selectează un eveniment pentru ștergere:*</value>
+  </data>
+  <data name="NoEventsToDelete" xml:space="preserve">
+    <value>📭 Nu sunt evenimente viitoare de șters.</value>
+  </data>
+  <data name="ConfirmDeletion" xml:space="preserve">
+    <value>⚠️ *Confirmă Ștergerea*
+
+Ești sigur că vrei să ștergi:</value>
+  </data>
+  <data name="EventDeleted" xml:space="preserve">
+    <value>✅ Evenimentul '{0}' a fost șters cu succes.</value>
+  </data>
+  <data name="DeletionCancelled" xml:space="preserve">
+    <value>Ștergere anulată.</value>
+  </data>
+  <data name="EventHasAttendees" xml:space="preserve">
+    <value>⚠️ Acest eveniment are {0} răspunsuri de participare.</value>
+  </data>
+
+  <!-- Attendance -->
+  <data name="AttendanceYes" xml:space="preserve">
+    <value>✅ Vei participa!</value>
+  </data>
+  <data name="AttendanceNo" xml:space="preserve">
+    <value>❌ Nu vei participa</value>
+  </data>
+  <data name="AttendanceMaybe" xml:space="preserve">
+    <value>❓ Ești marcat ca poate</value>
+  </data>
+  <data name="PleaseConfirmAttendance" xml:space="preserve">
+    <value>✅ Te rog confirmă participarea ta:</value>
+  </data>
+  <data name="ConfirmedLabel" xml:space="preserve">
+    <value>✅ *Confirmați ({0})*</value>
+  </data>
+  <data name="MaybeLabel" xml:space="preserve">
+    <value>🤔 *Poate ({0})*</value>
+  </data>
+  <data name="CantAttendLabel" xml:space="preserve">
+    <value>❌ *Nu pot participa ({0})*</value>
+  </data>
+
+  <!-- Group Messages -->
+  <data name="NewEventAnnouncement" xml:space="preserve">
+    <value>📢 *Serviciu de Închinare Nou*</value>
+  </data>
+  <data name="EventCancelled" xml:space="preserve">
+    <value>❌ *Eveniment Anulat*</value>
+  </data>
+  <data name="NextEvent" xml:space="preserve">
+    <value>⏭ *Următorul Eveniment*</value>
+  </data>
+  <data name="EventStatus" xml:space="preserve">
+    <value>📊 *Status Eveniment: {0}*</value>
+  </data>
+  <data name="AttendanceFor" xml:space="preserve">
+    <value>📋 *Participare pentru: {0}*</value>
+  </data>
+
+  <!-- Roles -->
+  <data name="YourRoles" xml:space="preserve">
+    <value>Rolurile tale curente:</value>
+  </data>
+  <data name="NoRolesAssigned" xml:space="preserve">
+    <value>Nu ai selectat încă niciun rol. Folosește /register pentru a-ți selecta rolurile.</value>
+  </data>
+  <data name="RolesNeeded" xml:space="preserve">
+    <value>⚠️ *Roluri Încă Necesare*</value>
+  </data>
+
+  <!-- Role Names -->
+  <data name="Role.Vocals" xml:space="preserve">
+    <value>Voce</value>
+  </data>
+  <data name="Role.Guitar" xml:space="preserve">
+    <value>Chitară</value>
+  </data>
+  <data name="Role.Bass" xml:space="preserve">
+    <value>Bass</value>
+  </data>
+  <data name="Role.Drums" xml:space="preserve">
+    <value>Tobe</value>
+  </data>
+  <data name="Role.Percussion" xml:space="preserve">
+    <value>Percuție</value>
+  </data>
+  <data name="Role.Keyboard" xml:space="preserve">
+    <value>Clape</value>
+  </data>
+  <data name="Role.SoundTech" xml:space="preserve">
+    <value>Sunet</value>
+  </data>
+  <data name="Role.Media" xml:space="preserve">
+    <value>Media</value>
+  </data>
+  <data name="Role.Prayer" xml:space="preserve">
+    <value>Rugăciune</value>
+  </data>
+
+  <!-- Buttons -->
+  <data name="ButtonYes" xml:space="preserve">
+    <value>✅ Da</value>
+  </data>
+  <data name="ButtonNo" xml:space="preserve">
+    <value>❌ Nu</value>
+  </data>
+  <data name="ButtonMaybe" xml:space="preserve">
+    <value>🤔 Poate</value>
+  </data>
+  <data name="ButtonCancel" xml:space="preserve">
+    <value>❌ Anulează</value>
+  </data>
+  <data name="ButtonDelete" xml:space="preserve">
+    <value>✅ Da, Șterge</value>
+  </data>
+  <data name="ButtonViewStatus" xml:space="preserve">
+    <value>📊 Vezi Status</value>
+  </data>
+
+  <!-- Setlist -->
+  <data name="Setlist" xml:space="preserve">
+    <value>🎶 *Lista de Cântări:*</value>
+  </data>
+
+  <!-- Time -->
+  <data name="TimeIn" xml:space="preserve">
+    <value>În {0}</value>
+  </data>
+  <data name="TimeDaysHours" xml:space="preserve">
+    <value>{0} zile, {1} ore</value>
+  </data>
+  <data name="TimeHoursMinutes" xml:space="preserve">
+    <value>{0} ore, {1} minute</value>
+  </data>
+
+  <!-- Language -->
+  <data name="SelectLanguage" xml:space="preserve">
+    <value>🌐 Selectează limba ta:</value>
+  </data>
+  <data name="LanguageChanged" xml:space="preserve">
+    <value>✅ Limba a fost schimbată în Română</value>
+  </data>
+
+  <!-- Admin Panel -->
+  <data name="AdminPanel" xml:space="preserve">
+    <value>🛠 *Panou Admin*
+
+Acțiuni admin disponibile:
+/newevent - Creează un nou serviciu de închinare
+/deleteevent - Șterge un eveniment
+/remind - Trimite memento pentru următorul eveniment
+/makeadmin @username - Acordă privilegii de admin
+/removeadmin @username - Revocă privilegii de admin</value>
+  </data>
+
+  <!-- Reminders -->
+  <data name="ReminderSent" xml:space="preserve">
+    <value>✅ Memento trimis la {0} participanți confirmați pentru:</value>
+  </data>
+  <data name="NoConfirmedAttendees" xml:space="preserve">
+    <value>⚠️ Nu sunt participanți confirmați pentru '{0}'</value>
+  </data>
+  <data name="CustomReminderPrompt" xml:space="preserve">
+    <value>📝 Te rog scrie mesajul personalizat de memento pe care vrei să-l trimiți tuturor participanților confirmați la următorul eveniment.
+
+Tastează /cancel pentru a anula.</value>
+  </data>
+
+  <!-- Additional Messages -->
+  <data name="EventReminder" xml:space="preserve">
+    <value>Memento Eveniment</value>
+  </data>
+  <data name="EventTitle" xml:space="preserve">
+    <value>Eveniment</value>
+  </data>
+  <data name="MessageFromAdmin" xml:space="preserve">
+    <value>Mesaj de la Admin</value>
+  </data>
+  <data name="NoConfirmationsYet" xml:space="preserve">
+    <value>Încă nu sunt confirmări</value>
+  </data>
+
+  <!-- Event Creation Wizard -->
+  <data name="WizardTemplateSunday" xml:space="preserve">
+    <value>Serviciu de Duminică</value>
+  </data>
+  <data name="WizardTemplateRehearsal" xml:space="preserve">
+    <value>Repetiție</value>
+  </data>
+  <data name="EventNotFound" xml:space="preserve">
+    <value>Evenimentul nu a fost găsit</value>
+  </data>
+  <data name="StatusSentPrivate" xml:space="preserve">
+    <value>Detaliile au fost trimise în mesaj privat</value>
+  </data>
+  <data name="AttendanceSummary" xml:space="preserve">
+    <value>📊 *Sumar Prezență*</value>
+  </data>
+  <data name="RoleCoverage" xml:space="preserve">
+    <value>📋 *Acoperire Roluri*</value>
+  </data>
+  <data name="WizardSelectDate" xml:space="preserve">
+    <value>📅 *Selectează Data*</value>
+  </data>
+  <data name="WizardSelectTime" xml:space="preserve">
+    <value>🕐 *Selectează Ora*</value>
+  </data>
+  <data name="WizardSelectLocation" xml:space="preserve">
+    <value>📍 *Selectează Locația*</value>
+  </data>
+  <data name="WizardAddSongs" xml:space="preserve">
+    <value>🎶 *Adaugi Cântări?*</value>
+  </data>
+  <data name="WizardConfirm" xml:space="preserve">
+    <value>✅ *Confirmă Crearea Evenimentului*</value>
+  </data>
+  <data name="WizardEnterTitle" xml:space="preserve">
+    <value>📝 *Introdu Titlul Evenimentului*</value>
+  </data>
+  <data name="WizardEnterDate" xml:space="preserve">
+    <value>📅 *Introdu Data*</value>
+  </data>
+  <data name="WizardEnterTime" xml:space="preserve">
+    <value>🕐 *Introdu Ora*</value>
+  </data>
+  <data name="WizardEnterLocation" xml:space="preserve">
+    <value>📍 *Introdu Locația*</value>
+  </data>
+  <data name="WizardEnterSongs" xml:space="preserve">
+    <value>🎵 *Introdu Cântările*</value>
+  </data>
+  <data name="WizardBack" xml:space="preserve">
+    <value>◀️ Înapoi</value>
+  </data>
+  <data name="WizardCustomDate" xml:space="preserve">
+    <value>📅 Dată Personalizată</value>
+  </data>
+  <data name="WizardCustomTime" xml:space="preserve">
+    <value>🕐 Oră Personalizată</value>
+  </data>
+  <data name="WizardCustomLocation" xml:space="preserve">
+    <value>📍 Locație Personalizată</value>
+  </data>
+  <data name="WizardAddSongsButton" xml:space="preserve">
+    <value>🎵 Adaugă Cântări</value>
+  </data>
+  <data name="WizardSkipSongs" xml:space="preserve">
+    <value>⏭️ Omite Cântările</value>
+  </data>
+  <data name="WizardCreateEvent" xml:space="preserve">
+    <value>✅ Creează Eveniment</value>
+  </data>
+  <data name="WizardEdit" xml:space="preserve">
+    <value>✏️ Editează</value>
+  </data>
+  <data name="ViewStatusButton" xml:space="preserve">
+    <value>📊 Vezi Status</value>
+  </data>
+</root>

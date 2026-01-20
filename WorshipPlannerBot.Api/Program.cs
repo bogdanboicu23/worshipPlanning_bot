@@ -8,6 +8,10 @@ using WorshipPlannerBot.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure port for Railway/Render/etc
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5245";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
 // Add services to the container.
 builder.Services.AddControllers().AddNewtonsoftJson();
 
@@ -22,16 +26,24 @@ builder.Services.AddDbContext<BotDbContext>(options =>
 // Register Services
 builder.Services.AddSingleton<IBotService, BotService>();
 builder.Services.AddSingleton<IConversationStateService, ConversationStateService>();
+builder.Services.AddSingleton<ILocalizationService, LocalizationService>();
+builder.Services.AddScoped<IGroupAnnouncementService, GroupAnnouncementService>();
 builder.Services.AddSingleton<IUpdateHandlerService, UpdateHandlerService>();
 
 // Register Handlers
 builder.Services.AddScoped<WorshipPlannerBot.Api.Handlers.EventHandler>();
+builder.Services.AddScoped<EventCreationWizard>();
 builder.Services.AddScoped<RoleHandler>();
 builder.Services.AddScoped<RegistrationHandler>();
 builder.Services.AddScoped<CallbackHandler>();
+builder.Services.AddScoped<InlineQueryHandler>();
+builder.Services.AddScoped<SongManager>();
 
 // Register Reminder Service
 builder.Services.AddScoped<IReminderService, ReminderService>();
+
+// Add background services
+builder.Services.AddHostedService<EventCleanupService>();
 
 // Add hosted service for polling
 if (!botConfig?.UseWebhook ?? true)

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using WorshipPlannerBot.Api.Models.Setlist;
 
 namespace WorshipPlannerBot.Api.Models;
 
@@ -29,4 +30,5 @@ public class Event
     public bool IsCancelled { get; set; }
 
     public ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();
+    public ICollection<SetListItem> SetListItems { get; set; } = new List<SetListItem>();
 }

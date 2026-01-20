@@ -15,12 +15,14 @@ public class RoleHandler
     private readonly IBotService _botService;
     private readonly BotDbContext _dbContext;
     private readonly ILogger<RoleHandler> _logger;
+    private readonly ILocalizationService _localization;
 
-    public RoleHandler(IBotService botService, BotDbContext dbContext, ILogger<RoleHandler> logger)
+    public RoleHandler(IBotService botService, BotDbContext dbContext, ILogger<RoleHandler> logger, ILocalizationService localization)
     {
         _botService = botService;
         _dbContext = dbContext;
         _logger = logger;
+        _localization = localization;
     }
 
     public async Task ShowUserRolesAsync(Message message, Models.User user)
@@ -32,25 +34,26 @@ public class RoleHandler
             .LoadAsync();
 
         var sb = new StringBuilder();
-        sb.AppendLine("👤 *Your Profile*\n");
-        sb.AppendLine($"Name: {user.FirstName} {user.LastName ?? ""}".Trim());
+        sb.AppendLine("👤 *Profilul tău*\n");
+        sb.AppendLine($"Nume: {user.FirstName} {user.LastName ?? ""}".Trim());
         sb.AppendLine($"Username: {(string.IsNullOrEmpty(user.Username) ? "not set" : $"@{user.Username}")}");
         sb.AppendLine($"Admin: {(user.IsAdmin ? "Yes ✅" : "No")}");
-        sb.AppendLine("\n*Your Roles:*");
+        sb.AppendLine("\n*Rolurile tale:*");
 
         if (user.UserRoles.Any())
         {
             foreach (var userRole in user.UserRoles.OrderBy(ur => ur.Role.DisplayOrder))
             {
-                sb.AppendLine($"{userRole.Role.Icon} {userRole.Role.Name}");
+                var roleName = _localization.GetString($"Role.{userRole.Role.Name.Replace(" ", "")}", user.LanguageCode) ?? userRole.Role.Name;
+                sb.AppendLine($"{userRole.Role.Icon} {roleName}");
             }
         }
         else
         {
-            sb.AppendLine("No roles assigned yet.");
+            sb.AppendLine("Nu ai roluri atribuite ție.");
         }
 
-        sb.AppendLine("\nUse /register to update your roles.");
+        sb.AppendLine("\nFolosește /register să-ți alegi rolurile tale.");
 
         await _botService.Client.SendMessage(
             message.Chat.Id,
@@ -68,12 +71,15 @@ public class RoleHandler
 
         var buttons = new List<List<InlineKeyboardButton>>();
 
+        var userLanguage = _dbContext.Users.Where(u => u.Id == userId).Select(u => u.LanguageCode).FirstOrDefault() ?? "en";
+
         foreach (var role in allRoles)
         {
             var isSelected = userRoleIds.Contains(role.Id);
+            var roleName = _localization.GetString($"Role.{role.Name.Replace(" ", "")}", userLanguage) ?? role.Name;
             var buttonText = isSelected
-                ? $"✅ {role.Icon} {role.Name}"
-                : $"{role.Icon} {role.Name}";
+                ? $"✅ {role.Icon} {roleName}"
+                : $"{role.Icon} {roleName}";
 
             buttons.Add(new List<InlineKeyboardButton>
             {

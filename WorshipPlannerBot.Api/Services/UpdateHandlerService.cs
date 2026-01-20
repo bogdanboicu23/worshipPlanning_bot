@@ -14,17 +14,20 @@ public class UpdateHandlerService : IUpdateHandlerService
     private readonly IBotService _botService;
     private readonly IServiceProvider _serviceProvider;
     private readonly IConversationStateService _conversationState;
+    private readonly ILocalizationService _localization;
     private readonly ILogger<UpdateHandlerService> _logger;
 
     public UpdateHandlerService(
         IBotService botService,
         IServiceProvider serviceProvider,
         IConversationStateService conversationState,
+        ILocalizationService localization,
         ILogger<UpdateHandlerService> logger)
     {
         _botService = botService;
         _serviceProvider = serviceProvider;
         _conversationState = conversationState;
+        _localization = localization;
         _logger = logger;
     }
 
@@ -36,6 +39,7 @@ public class UpdateHandlerService : IUpdateHandlerService
             {
                 UpdateType.Message => HandleMessageAsync(update.Message!),
                 UpdateType.CallbackQuery => HandleCallbackQueryAsync(update.CallbackQuery!),
+                UpdateType.InlineQuery => HandleInlineQueryAsync(update.InlineQuery!),
                 _ => HandleUnknownUpdateAsync(update)
             };
 
@@ -52,7 +56,11 @@ public class UpdateHandlerService : IUpdateHandlerService
         if (message.Text is not { } text)
             return;
 
-        _logger.LogInformation($"Received message from {message.From?.Username}: {text}");
+        var isGroupChat = message.Chat.Type == ChatType.Group || message.Chat.Type == ChatType.Supergroup;
+        var isPrivateChat = message.Chat.Type == ChatType.Private;
+        var isInTopic = message.MessageThreadId.HasValue && message.MessageThreadId.Value > 0;
+
+        _logger.LogInformation($"Received message from {message.From?.Username} in {message.Chat.Type} (Chat ID: {message.Chat.Id}, Topic: {message.MessageThreadId}): {text}");
 
         using var scope = _serviceProvider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<BotDbContext>();
@@ -61,11 +69,36 @@ public class UpdateHandlerService : IUpdateHandlerService
 
         var command = text.Split(' ')[0].ToLower();
 
+        // In group chats, handle specific commands
+        if (isGroupChat)
+        {
+            // Strip bot username from command if present (e.g., /events@botname -> /events)
+            var baseCommand = command.Contains('@') ? command.Split('@')[0] : command;
+
+            switch (baseCommand)
+            {
+                case "/events":
+                    await HandleEventsInGroupAsync(message, user);
+                    return;
+                case "/nextevent":
+                    await HandleNextEventInGroupAsync(message, user);
+                    return;
+                case "/attendance":
+                    await HandleAttendanceInGroupAsync(message, user);
+                    return;
+                default:
+                    // Ignore other commands in group chat
+                    return;
+            }
+        }
+
+        // Private chat handling
         // Check for cancel command first
         if (command == "/cancel")
         {
             _conversationState.ClearUserState(message.From!.Id);
-            await _botService.Client.SendMessage(message.Chat.Id, "❌ Operation cancelled.");
+            var cancelText = _localization.GetString("CancelSuccess", user.LanguageCode);
+            await _botService.Client.SendMessage(message.Chat.Id, cancelText);
             return;
         }
 
@@ -83,8 +116,11 @@ public class UpdateHandlerService : IUpdateHandlerService
             "/help" => HandleHelpCommandAsync(message, user),
             "/register" => HandleRegisterCommandAsync(message, user),
             "/myroles" => HandleMyRolesCommandAsync(message, user),
+            "/language" => HandleLanguageCommandAsync(message, user),
             "/newevent" => HandleNewEventCommandAsync(message, user),
             "/events" => HandleEventsCommandAsync(message, user),
+            "/songs" => HandleSongsCommandAsync(message, user),
+            "/deleteevent" => HandleDeleteEventCommandAsync(message, user),
             "/remind" => HandleReminderCommandAsync(message, user),
             "/remindnext" => HandleRemindNextCommandAsync(message, user),
             "/admin" => HandleAdminCommandAsync(message, user),
@@ -108,31 +144,39 @@ public class UpdateHandlerService : IUpdateHandlerService
         await _botService.Client.AnswerCallbackQuery(callbackQuery.Id);
     }
 
+    private async Task HandleInlineQueryAsync(InlineQuery inlineQuery)
+    {
+        _logger.LogInformation($"Received inline query from {inlineQuery.From.Username}: {inlineQuery.Query}");
+
+        using var scope = _serviceProvider.CreateScope();
+        var inlineHandler = scope.ServiceProvider.GetRequiredService<InlineQueryHandler>();
+        await inlineHandler.HandleInlineQueryAsync(inlineQuery);
+    }
+
     private async Task HandleStartCommandAsync(Message message, Models.User user)
     {
-        var welcomeText = $"Welcome to Worship Planner Bot! 🎵\n\n" +
-                         $"I help manage worship service planning and attendance.\n\n" +
-                         $"Use /register to set up your profile and select your roles.\n" +
-                         $"Use /help to see all available commands.";
-
+        var welcomeText = _localization.GetString("Welcome", user.LanguageCode);
         await _botService.Client.SendMessage(message.Chat.Id, welcomeText);
     }
 
     private async Task HandleHelpCommandAsync(Message message, Models.User user)
     {
-        var helpText = "📋 *Available Commands:*\n\n" +
-                      "/register - Set up your profile and roles\n" +
-                      "/myroles - View and manage your roles\n" +
-                      "/events - View upcoming worship services\n" +
-                      "/help - Show this help message\n";
+        var lang = user.LanguageCode;
+        var helpText = _localization.GetString("HelpTitle", lang) + "\n\n" +
+                      $"/register - {_localization.GetString("HelpRegister", lang)}\n" +
+                      $"/myroles - {_localization.GetString("HelpMyRoles", lang)}\n" +
+                      $"/events - {_localization.GetString("HelpEvents", lang)}\n" +
+                      $"/songs - {_localization.GetString("HelpSongs", lang)}\n" +
+                      $"/language - {_localization.GetString("HelpLanguage", lang)}\n" +
+                      $"/help - {_localization.GetString("HelpTitle", lang)}\n";
 
         if (user.IsAdmin)
         {
-            helpText += "\n*Admin Commands:*\n" +
-                       "/newevent - Create a new worship service\n" +
-                       "/remind - Send reminder for next event\n" +
-                       "/remindnext - Send custom message to attendees\n" +
-                       "/admin - Admin management panel\n";
+            helpText += $"\n{_localization.GetString("AdminCommands", lang)}\n" +
+                       $"/newevent - {_localization.GetString("HelpNewEvent", lang)}\n" +
+                       $"/deleteevent - {_localization.GetString("HelpDeleteEvent", lang)}\n" +
+                       $"/remind - {_localization.GetString("HelpRemind", lang)}\n" +
+                       $"/admin - {_localization.GetString("AdminPanel", lang)}\n";
         }
 
         await _botService.Client.SendMessage(
@@ -155,22 +199,37 @@ public class UpdateHandlerService : IUpdateHandlerService
         await roleHandler.ShowUserRolesAsync(message, user);
     }
 
+    private async Task HandleLanguageCommandAsync(Message message, Models.User user)
+    {
+        var buttons = new[]
+        {
+            new[] { InlineKeyboardButton.WithCallbackData("🇬🇧 English", "lang_en") },
+            new[] { InlineKeyboardButton.WithCallbackData("🇷🇴 Română", "lang_ro") },
+            new[] { InlineKeyboardButton.WithCallbackData("🇷🇺 Русский", "lang_ru") }
+        };
+
+        var keyboard = new InlineKeyboardMarkup(buttons);
+
+        await _botService.Client.SendMessage(
+            message.Chat.Id,
+            _localization.GetString("SelectLanguage", user.LanguageCode),
+            replyMarkup: keyboard);
+    }
+
     private async Task HandleNewEventCommandAsync(Message message, Models.User user)
     {
         if (!user.IsAdmin)
         {
             await _botService.Client.SendMessage(
                 message.Chat.Id,
-                "⚠️ This command is only available to administrators.");
+                _localization.GetString("AdminOnly", user.LanguageCode));
             return;
         }
 
-        // Set conversation state to expect event details
-        _conversationState.SetUserState(message.From!.Id, "awaiting_event_details", user);
-
+        // Start the event creation wizard
         using var scope = _serviceProvider.CreateScope();
-        var eventHandler = scope.ServiceProvider.GetRequiredService<WorshipPlannerBot.Api.Handlers.EventHandler>();
-        await eventHandler.StartEventCreationAsync(message, user);
+        var eventWizard = scope.ServiceProvider.GetRequiredService<EventCreationWizard>();
+        await eventWizard.StartWizard(message, user);
     }
 
     private async Task HandleEventsCommandAsync(Message message, Models.User user)
@@ -180,22 +239,24 @@ public class UpdateHandlerService : IUpdateHandlerService
         await eventHandler.ShowUpcomingEventsAsync(message, user);
     }
 
+    private async Task HandleSongsCommandAsync(Message message, Models.User user)
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var songManager = scope.ServiceProvider.GetRequiredService<SongManager>();
+        await songManager.ShowSongLibrary(message, user);
+    }
+
     private async Task HandleAdminCommandAsync(Message message, Models.User user)
     {
         if (!user.IsAdmin)
         {
             await _botService.Client.SendMessage(
                 message.Chat.Id,
-                "⚠️ This command is only available to administrators.");
+                _localization.GetString("AdminOnly", user.LanguageCode));
             return;
         }
 
-        var adminText = "🛠 *Admin Panel*\n\n" +
-                       "Available admin actions:\n" +
-                       "/newevent - Create a new worship service\n" +
-                       "/setrole @username role - Assign role to user\n" +
-                       "/makeadmin @username - Grant admin privileges\n" +
-                       "/removeadmin @username - Revoke admin privileges\n";
+        var adminText = _localization.GetString("AdminPanel", user.LanguageCode);
 
         await _botService.Client.SendMessage(
             message.Chat.Id,
@@ -209,7 +270,7 @@ public class UpdateHandlerService : IUpdateHandlerService
         {
             await _botService.Client.SendMessage(
                 message.Chat.Id,
-                "⚠️ This command is only available to administrators.");
+                _localization.GetString("AdminOnly", user.LanguageCode));
             return;
         }
 
@@ -228,7 +289,7 @@ public class UpdateHandlerService : IUpdateHandlerService
         {
             await _botService.Client.SendMessage(
                 message.Chat.Id,
-                "📭 No upcoming events found.");
+                _localization.GetString("NoUpcomingEvents", user.LanguageCode));
             return;
         }
 
@@ -238,7 +299,7 @@ public class UpdateHandlerService : IUpdateHandlerService
         {
             await _botService.Client.SendMessage(
                 message.Chat.Id,
-                $"⚠️ No confirmed attendees for '{nextEvent.Title}'");
+                _localization.GetString("NoConfirmedAttendees", user.LanguageCode, nextEvent.Title));
             return;
         }
 
@@ -246,11 +307,56 @@ public class UpdateHandlerService : IUpdateHandlerService
 
         await _botService.Client.SendMessage(
             message.Chat.Id,
-            $"✅ Reminder sent to {confirmedCount} confirmed attendees for:\n\n" +
+            _localization.GetString("ReminderSent", user.LanguageCode, confirmedCount) + "\n\n" +
             $"*{nextEvent.Title}*\n" +
             $"📅 {nextEvent.DateTime.ToLocalTime():dddd, dd MMMM yyyy}\n" +
             $"🕐 {nextEvent.DateTime.ToLocalTime():HH:mm}",
             parseMode: ParseMode.Markdown);
+    }
+
+    private async Task HandleDeleteEventCommandAsync(Message message, Models.User user)
+    {
+        if (!user.IsAdmin)
+        {
+            await _botService.Client.SendMessage(
+                message.Chat.Id,
+                _localization.GetString("AdminOnly", user.LanguageCode));
+            return;
+        }
+
+        using var scope = _serviceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<BotDbContext>();
+
+        var upcomingEvents = await dbContext.Events
+            .Where(e => e.DateTime > DateTime.UtcNow && !e.IsCancelled)
+            .OrderBy(e => e.DateTime)
+            .Take(10)
+            .ToListAsync();
+
+        if (!upcomingEvents.Any())
+        {
+            await _botService.Client.SendMessage(
+                message.Chat.Id,
+                _localization.GetString("NoEventsToDelete", user.LanguageCode));
+            return;
+        }
+
+        var buttons = upcomingEvents.Select((evt, index) => new[]
+        {
+            InlineKeyboardButton.WithCallbackData(
+                $"{evt.Title} - {evt.DateTime.ToLocalTime():dd/MM HH:mm}",
+                $"delete_{evt.Id}")
+        }).ToList();
+
+        buttons.Add(new[] { InlineKeyboardButton.WithCallbackData("❌ Cancel", "delete_cancel") });
+
+        var keyboard = new InlineKeyboardMarkup(buttons);
+
+        await _botService.Client.SendMessage(
+            message.Chat.Id,
+            _localization.GetString("SelectEventToDelete", user.LanguageCode),
+            parseMode: ParseMode.Markdown,
+            replyMarkup: keyboard);
     }
 
     private async Task HandleRemindNextCommandAsync(Message message, Models.User user)
@@ -259,7 +365,7 @@ public class UpdateHandlerService : IUpdateHandlerService
         {
             await _botService.Client.SendMessage(
                 message.Chat.Id,
-                "⚠️ This command is only available to administrators.");
+                _localization.GetString("AdminOnly", user.LanguageCode));
             return;
         }
 
@@ -268,15 +374,20 @@ public class UpdateHandlerService : IUpdateHandlerService
 
         await _botService.Client.SendMessage(
             message.Chat.Id,
-            "📝 Please type the custom reminder message you want to send to all confirmed attendees of the next event.\n\n" +
-            "Type /cancel to cancel.");
+            _localization.GetString("CustomReminderPrompt", user.LanguageCode));
     }
 
     private async Task HandleUnknownCommandAsync(Message message)
     {
+        // Get user to determine language
+        using var scope = _serviceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<BotDbContext>();
+        var user = await dbContext.Users.FirstOrDefaultAsync(u => u.TelegramId == message.From!.Id);
+        var lang = user?.LanguageCode ?? "en";
+
         await _botService.Client.SendMessage(
             message.Chat.Id,
-            "❓ Unknown command. Use /help to see available commands.");
+            _localization.GetString("UnknownCommand", lang));
     }
 
     private Task HandleUnknownUpdateAsync(Update update)
@@ -287,16 +398,39 @@ public class UpdateHandlerService : IUpdateHandlerService
 
     private async Task HandleConversationStateAsync(Message message, Models.User user, ConversationState state)
     {
-        if (state.State == "awaiting_event_details")
+        if (state.State == "event_wizard")
         {
-            // Parse event details and create event
+            // Handle wizard text input
+            using var scope = _serviceProvider.CreateScope();
+            var wizard = scope.ServiceProvider.GetRequiredService<EventCreationWizard>();
+            await wizard.HandleWizardTextInput(message, user);
+        }
+        else if (state.State == "song_add_new")
+        {
+            // Handle new song creation
+            using var scope = _serviceProvider.CreateScope();
+            var songManager = scope.ServiceProvider.GetRequiredService<SongManager>();
+            await songManager.HandleNewSongInput(message, user);
+            _conversationState.ClearUserState(message.From!.Id);
+        }
+        else if (state.State == "song_edit")
+        {
+            // Handle song edit
+            using var scope = _serviceProvider.CreateScope();
+            var songManager = scope.ServiceProvider.GetRequiredService<SongManager>();
+            await songManager.HandleSongEditInput(message, user, state);
+            _conversationState.ClearUserState(message.From!.Id);
+        }
+        else if (state.State == "awaiting_event_details")
+        {
+            // Legacy event creation - keep for backward compatibility
             var lines = message.Text?.Split('\n') ?? Array.Empty<string>();
 
             if (lines.Length < 3)
             {
                 await _botService.Client.SendMessage(
                     message.Chat.Id,
-                    "❌ Invalid format. Please provide at least:\n\nTitle\nDate/Time (DD/MM/YYYY HH:MM)\nLocation\n\nOr type /cancel to cancel event creation.");
+                    _localization.GetString("InvalidEventFormat", user.LanguageCode));
                 return;
             }
 
@@ -325,7 +459,7 @@ public class UpdateHandlerService : IUpdateHandlerService
             {
                 await _botService.Client.SendMessage(
                     message.Chat.Id,
-                    "📭 No upcoming events found.");
+                    _localization.GetString("NoUpcomingEvents", user.LanguageCode));
             }
             else
             {
@@ -335,7 +469,7 @@ public class UpdateHandlerService : IUpdateHandlerService
                 {
                     await _botService.Client.SendMessage(
                         message.Chat.Id,
-                        $"⚠️ No confirmed attendees for '{nextEvent.Title}'");
+                        _localization.GetString("NoConfirmedAttendees", user.LanguageCode, nextEvent.Title));
                 }
                 else
                 {
@@ -343,7 +477,7 @@ public class UpdateHandlerService : IUpdateHandlerService
 
                     await _botService.Client.SendMessage(
                         message.Chat.Id,
-                        $"✅ Custom message sent to {confirmedCount} confirmed attendees for:\n\n" +
+                        _localization.GetString("ReminderSent", user.LanguageCode, confirmedCount) + "\n\n" +
                         $"*{nextEvent.Title}*\n" +
                         $"📅 {nextEvent.DateTime.ToLocalTime():dddd, dd MMMM yyyy}\n" +
                         $"🕐 {nextEvent.DateTime.ToLocalTime():HH:mm}",
@@ -354,6 +488,212 @@ public class UpdateHandlerService : IUpdateHandlerService
             // Clear conversation state
             _conversationState.ClearUserState(message.From!.Id);
         }
+    }
+
+    private async Task HandleEventsInGroupAsync(Message message, Models.User user)
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var groupAnnouncementService = scope.ServiceProvider.GetRequiredService<IGroupAnnouncementService>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<BotDbContext>();
+
+        var upcomingEvents = await dbContext.Events
+            .Where(e => e.DateTime > DateTime.UtcNow && !e.IsCancelled)
+            .OrderBy(e => e.DateTime)
+            .Take(3)
+            .ToListAsync();
+
+        if (!upcomingEvents.Any())
+        {
+            await _botService.Client.SendMessage(
+                message.Chat.Id,
+                _localization.GetString("NoUpcomingEvents", user.LanguageCode),
+                messageThreadId: message.MessageThreadId);
+            return;
+        }
+
+        foreach (var evt in upcomingEvents)
+        {
+            await groupAnnouncementService.SendEventSummaryToGroup(message.Chat.Id, evt, message.MessageThreadId);
+        }
+    }
+
+    private async Task HandleNextEventInGroupAsync(Message message, Models.User user)
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<BotDbContext>();
+
+        var nextEvent = await dbContext.Events
+            .Include(e => e.Attendances)
+                .ThenInclude(a => a.User)
+                    .ThenInclude(u => u.UserRoles)
+                        .ThenInclude(ur => ur.Role)
+            .Include(e => e.SetListItems.OrderBy(si => si.OrderIndex))
+                .ThenInclude(si => si.Song)
+            .Where(e => e.DateTime > DateTime.UtcNow && !e.IsCancelled)
+            .OrderBy(e => e.DateTime)
+            .FirstOrDefaultAsync();
+
+        if (nextEvent == null)
+        {
+            await _botService.Client.SendMessage(
+                message.Chat.Id,
+                _localization.GetString("NoUpcomingEvents", user.LanguageCode),
+                messageThreadId: message.MessageThreadId);
+            return;
+        }
+
+        var timeUntilEvent = nextEvent.DateTime - DateTime.UtcNow;
+        var timeString = timeUntilEvent.Days > 0
+            ? _localization.GetString("TimeDaysHours", user.LanguageCode, timeUntilEvent.Days, timeUntilEvent.Hours)
+            : _localization.GetString("TimeHoursMinutes", user.LanguageCode, timeUntilEvent.Hours, timeUntilEvent.Minutes);
+
+        var confirmedCount = nextEvent.Attendances.Count(a => a.Status == AttendanceStatus.Yes);
+        var maybeCount = nextEvent.Attendances.Count(a => a.Status == AttendanceStatus.Maybe);
+
+        var messageText = _localization.GetString("NextEvent", user.LanguageCode) + "\n\n" +
+                         $"🎵 *{nextEvent.Title}*\n" +
+                         $"📅 {nextEvent.DateTime.ToLocalTime():dddd, dd MMMM yyyy}\n" +
+                         $"🕐 {nextEvent.DateTime.ToLocalTime():HH:mm}\n" +
+                         $"📍 {nextEvent.Location}\n" +
+                         $"⏱ {_localization.GetString("TimeIn", user.LanguageCode, timeString)}\n\n";
+
+        // Add setlist if available
+        if (nextEvent.SetListItems != null && nextEvent.SetListItems.Any())
+        {
+            messageText += _localization.GetString("Setlist", user.LanguageCode) + "\n";
+            foreach (var item in nextEvent.SetListItems.OrderBy(si => si.OrderIndex))
+            {
+                if (item.ItemType == Models.Setlist.SetListItemType.Song && item.Song != null)
+                {
+                    messageText += $"  {item.OrderIndex + 1}. {item.Song.Title}\n";
+                }
+            }
+            messageText += "\n";
+        }
+
+        messageText += $"\n👥 *{_localization.GetString("PleaseConfirmAttendance", user.LanguageCode).Replace("✅ ", "")}*\n" +
+                      _localization.GetString("ConfirmedLabel", user.LanguageCode, confirmedCount).Replace("*", "").Replace("✅ ", "✅ ") + "\n" +
+                      _localization.GetString("MaybeLabel", user.LanguageCode, maybeCount).Replace("*", "").Replace("🤔 ", "🤔 ");
+
+        var keyboard = new InlineKeyboardMarkup(new[]
+        {
+            new[]
+            {
+                InlineKeyboardButton.WithCallbackData("✅ Yes", $"attend_{nextEvent.Id}_yes"),
+                InlineKeyboardButton.WithCallbackData("❌ No", $"attend_{nextEvent.Id}_no"),
+                InlineKeyboardButton.WithCallbackData("🤔 Maybe", $"attend_{nextEvent.Id}_maybe")
+            }
+        });
+
+        await _botService.Client.SendMessage(
+            message.Chat.Id,
+            messageText,
+            parseMode: ParseMode.Markdown,
+            replyMarkup: keyboard,
+            messageThreadId: message.MessageThreadId);
+    }
+
+    private async Task HandleAttendanceInGroupAsync(Message message, Models.User user)
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<BotDbContext>();
+
+        var nextEvent = await dbContext.Events
+            .Include(e => e.Attendances)
+                .ThenInclude(a => a.User)
+                    .ThenInclude(u => u.UserRoles)
+                        .ThenInclude(ur => ur.Role)
+            .Include(e => e.SetListItems.OrderBy(si => si.OrderIndex))
+                .ThenInclude(si => si.Song)
+            .Where(e => e.DateTime > DateTime.UtcNow && !e.IsCancelled)
+            .OrderBy(e => e.DateTime)
+            .FirstOrDefaultAsync();
+
+        if (nextEvent == null)
+        {
+            await _botService.Client.SendMessage(
+                message.Chat.Id,
+                _localization.GetString("NoUpcomingEvents", user.LanguageCode),
+                messageThreadId: message.MessageThreadId);
+            return;
+        }
+
+        var confirmedUsers = nextEvent.Attendances
+            .Where(a => a.Status == AttendanceStatus.Yes)
+            .OrderBy(a => a.User.FirstName)
+            .ToList();
+
+        var maybeUsers = nextEvent.Attendances
+            .Where(a => a.Status == AttendanceStatus.Maybe)
+            .OrderBy(a => a.User.FirstName)
+            .ToList();
+
+        var declinedUsers = nextEvent.Attendances
+            .Where(a => a.Status == AttendanceStatus.No)
+            .OrderBy(a => a.User.FirstName)
+            .ToList();
+
+        var messageText = _localization.GetString("AttendanceFor", user.LanguageCode, nextEvent.Title) + "\n" +
+                         $"📅 {nextEvent.DateTime.ToLocalTime():dddd, dd MMMM yyyy} at {nextEvent.DateTime.ToLocalTime():HH:mm}\n\n";
+
+        if (confirmedUsers.Any())
+        {
+            messageText += _localization.GetString("ConfirmedLabel", user.LanguageCode, confirmedUsers.Count) + "\n";
+            foreach (var attendance in confirmedUsers)
+            {
+                var roles = attendance.User.UserRoles.Select(ur => ur.Role.Icon);
+                var roleIcons = roles.Any() ? " " + string.Join("", roles) : "";
+                messageText += $"• {attendance.User.FirstName}{roleIcons}\n";
+            }
+        }
+
+        if (maybeUsers.Any())
+        {
+            messageText += "\n" + _localization.GetString("MaybeLabel", user.LanguageCode, maybeUsers.Count) + "\n";
+            foreach (var attendance in maybeUsers)
+            {
+                messageText += $"• {attendance.User.FirstName}\n";
+            }
+        }
+
+        if (declinedUsers.Any())
+        {
+            messageText += "\n" + _localization.GetString("CantAttendLabel", user.LanguageCode, declinedUsers.Count) + "\n";
+            foreach (var attendance in declinedUsers)
+            {
+                messageText += $"• {attendance.User.FirstName}\n";
+            }
+        }
+
+        // Show needed roles
+        var allRoles = await dbContext.Roles.OrderBy(r => r.DisplayOrder).ToListAsync();
+        var coveredRoles = confirmedUsers
+            .SelectMany(a => a.User.UserRoles.Select(ur => ur.Role))
+            .Distinct()
+            .ToList();
+
+        var missingRoles = allRoles.Where(r => !coveredRoles.Any(cr => cr.Id == r.Id)).ToList();
+
+        if (missingRoles.Any())
+        {
+            messageText += "\n" + _localization.GetString("RolesNeeded", user.LanguageCode) + "\n";
+            foreach (var role in missingRoles)
+            {
+                var localizedRoleName = _localization.GetString($"Role.{role.Name.Replace(" ", "")}", user.LanguageCode);
+                if (localizedRoleName == $"Role.{role.Name.Replace(" ", "")}")
+                {
+                    // If no translation found, use original name
+                    localizedRoleName = role.Name;
+                }
+                messageText += $"{role.Icon} {localizedRoleName}\n";
+            }
+        }
+
+        await _botService.Client.SendMessage(
+            message.Chat.Id,
+            messageText,
+            parseMode: ParseMode.Markdown,
+            messageThreadId: message.MessageThreadId);
     }
 
     private async Task<Models.User> EnsureUserExistsAsync(BotDbContext dbContext, Telegram.Bot.Types.User telegramUser)
@@ -371,6 +711,7 @@ public class UpdateHandlerService : IUpdateHandlerService
                 FirstName = telegramUser.FirstName,
                 LastName = telegramUser.LastName,
                 Username = telegramUser.Username,
+                LanguageCode = telegramUser.LanguageCode ?? "en",
                 CreatedAt = DateTime.UtcNow,
                 LastActiveAt = DateTime.UtcNow
             };
@@ -384,6 +725,13 @@ public class UpdateHandlerService : IUpdateHandlerService
             user.FirstName = telegramUser.FirstName;
             user.LastName = telegramUser.LastName;
             user.Username = telegramUser.Username;
+
+            // Update language if it changed
+            if (!string.IsNullOrEmpty(telegramUser.LanguageCode) && user.LanguageCode != telegramUser.LanguageCode)
+            {
+                user.LanguageCode = telegramUser.LanguageCode;
+            }
+
             await dbContext.SaveChangesAsync();
         }
 

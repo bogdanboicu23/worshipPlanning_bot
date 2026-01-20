@@ -13,17 +13,20 @@ public class RegistrationHandler
     private readonly BotDbContext _dbContext;
     private readonly RoleHandler _roleHandler;
     private readonly ILogger<RegistrationHandler> _logger;
+    private readonly ILocalizationService _localization;
 
     public RegistrationHandler(
         IBotService botService,
         BotDbContext dbContext,
         RoleHandler roleHandler,
-        ILogger<RegistrationHandler> logger)
+        ILogger<RegistrationHandler> logger,
+        ILocalizationService localization)
     {
         _botService = botService;
         _dbContext = dbContext;
         _roleHandler = roleHandler;
         _logger = logger;
+        _localization = localization;
     }
 
     public async Task StartRegistrationAsync(Message message, Models.User user)
@@ -53,7 +56,11 @@ public class RegistrationHandler
         var rolesText = user.UserRoles.Any()
             ? string.Join("\n", user.UserRoles
                 .OrderBy(ur => ur.Role.DisplayOrder)
-                .Select(ur => $"{ur.Role.Icon} {ur.Role.Name}"))
+                .Select(ur =>
+                {
+                    var roleName = _localization.GetString($"Role.{ur.Role.Name.Replace(" ", "")}", user.LanguageCode) ?? ur.Role.Name;
+                    return $"{ur.Role.Icon} {roleName}";
+                }))
             : "No roles selected";
 
         var confirmationText = $"✅ *Registration Complete!*\n\n" +

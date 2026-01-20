@@ -11,15 +11,18 @@ public class ReminderService : IReminderService
 {
     private readonly IBotService _botService;
     private readonly IServiceProvider _serviceProvider;
+    private readonly ILocalizationService _localization;
     private readonly ILogger<ReminderService> _logger;
 
     public ReminderService(
         IBotService botService,
         IServiceProvider serviceProvider,
+        ILocalizationService localization,
         ILogger<ReminderService> logger)
     {
         _botService = botService;
         _serviceProvider = serviceProvider;
+        _localization = localization;
         _logger = logger;
     }
 
@@ -52,12 +55,11 @@ public class ReminderService : IReminderService
             return;
         }
 
-        var reminderMessage = BuildReminderMessage(evt, reminderType);
-
         foreach (var attendee in confirmedAttendees)
         {
             try
             {
+                var reminderMessage = BuildReminderMessage(evt, reminderType, attendee.LanguageCode);
                 await _botService.Client.SendMessage(
                     attendee.TelegramId,
                     reminderMessage,
@@ -103,17 +105,20 @@ public class ReminderService : IReminderService
             return;
         }
 
-        var reminderMessage = $"🔔 *Reminder for {role.Name} Team*\n\n" +
-                            $"Event: {evt.Title}\n" +
-                            $"📅 {evt.DateTime.ToLocalTime():dddd, dd MMMM yyyy}\n" +
-                            $"🕐 {evt.DateTime.ToLocalTime():HH:mm}\n" +
-                            $"📍 {evt.Location}\n\n" +
-                            $"Please prepare for your {role.Name} responsibilities.";
-
         foreach (var attendee in roleAttendees)
         {
             try
             {
+                var localizedRoleName = _localization.GetString($"Role.{role.Name.Replace(" ", "")}", attendee.LanguageCode);
+                if (localizedRoleName == $"Role.{role.Name.Replace(" ", "")}")
+                    localizedRoleName = role.Name;
+
+                var reminderMessage = $"🔔 *{_localization.GetString("EventReminder", attendee.LanguageCode)} - {localizedRoleName}*\n\n" +
+                                    $"{_localization.GetString("EventTitle", attendee.LanguageCode)}: {evt.Title}\n" +
+                                    $"📅 {evt.DateTime.ToLocalTime():dddd, dd MMMM yyyy}\n" +
+                                    $"🕐 {evt.DateTime.ToLocalTime():HH:mm}\n" +
+                                    $"📍 {evt.Location}";
+
                 await _botService.Client.SendMessage(
                     attendee.TelegramId,
                     reminderMessage,
@@ -144,15 +149,15 @@ public class ReminderService : IReminderService
             .Select(a => a.User)
             .ToList();
 
-        var message = $"📢 *Message from Admin*\n\n" +
-                     $"Event: {evt.Title}\n" +
-                     $"📅 {evt.DateTime.ToLocalTime():dddd, dd MMMM}\n\n" +
-                     $"{customMessage}";
-
         foreach (var attendee in confirmedAttendees)
         {
             try
             {
+                var message = $"📢 *{_localization.GetString("MessageFromAdmin", attendee.LanguageCode)}*\n\n" +
+                             $"{_localization.GetString("EventTitle", attendee.LanguageCode)}: {evt.Title}\n" +
+                             $"📅 {evt.DateTime.ToLocalTime():dddd, dd MMMM}\n\n" +
+                             $"{customMessage}";
+
                 await _botService.Client.SendMessage(
                     attendee.TelegramId,
                     message,
@@ -182,10 +187,10 @@ public class ReminderService : IReminderService
             .ToListAsync();
     }
 
-    private string BuildReminderMessage(Event evt, string reminderType)
+    private string BuildReminderMessage(Event evt, string reminderType, string languageCode)
     {
         var timeUntilEvent = evt.DateTime - DateTime.UtcNow;
-        var timeString = FormatTimeUntil(timeUntilEvent);
+        var timeString = FormatTimeUntil(timeUntilEvent, languageCode);
 
         var sb = new StringBuilder();
 
@@ -221,7 +226,7 @@ public class ReminderService : IReminderService
         return sb.ToString();
     }
 
-    private string FormatTimeUntil(TimeSpan timeSpan)
+    private string FormatTimeUntil(TimeSpan timeSpan, string languageCode)
     {
         if (timeSpan.TotalMinutes < 0)
             return "Event has started";

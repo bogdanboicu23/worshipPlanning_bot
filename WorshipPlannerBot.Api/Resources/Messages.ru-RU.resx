@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Common Messages -->
+  <data name="Welcome" xml:space="preserve">
+    <value>Добро пожаловать в Worship Planner Bot! 🎵
+
+Используйте /help чтобы увидеть доступные команды.</value>
+  </data>
+  <data name="UnknownCommand" xml:space="preserve">
+    <value>Неизвестная команда. Используйте /help чтобы увидеть доступные команды.</value>
+  </data>
+  <data name="AdminOnly" xml:space="preserve">
+    <value>⚠️ Эта команда доступна только администраторам.</value>
+  </data>
+  <data name="CancelSuccess" xml:space="preserve">
+    <value>✅ Операция отменена.</value>
+  </data>
+
+  <!-- Help Command -->
+  <data name="HelpTitle" xml:space="preserve">
+    <value>📋 Доступные Команды</value>
+  </data>
+  <data name="HelpRegister" xml:space="preserve">
+    <value>Выберите ваши роли в служении</value>
+  </data>
+  <data name="HelpMyRoles" xml:space="preserve">
+    <value>Посмотреть ваши роли</value>
+  </data>
+  <data name="HelpEvents" xml:space="preserve">
+    <value>Посмотреть предстоящие события</value>
+  </data>
+  <data name="HelpLanguage" xml:space="preserve">
+    <value>Изменить язык</value>
+  </data>
+  <data name="AdminCommands" xml:space="preserve">
+    <value>Команды Администратора:</value>
+  </data>
+  <data name="HelpNewEvent" xml:space="preserve">
+    <value>Создать новое богослужение</value>
+  </data>
+  <data name="HelpDeleteEvent" xml:space="preserve">
+    <value>Удалить событие</value>
+  </data>
+  <data name="HelpRemind" xml:space="preserve">
+    <value>Отправить напоминание участникам</value>
+  </data>
+
+  <!-- Registration -->
+  <data name="RegisterPrompt" xml:space="preserve">
+    <value>🎵 Пожалуйста, выберите ваши роли в команде прославления:
+
+Нажмите на каждую роль, в которой вы можете служить, затем нажмите Готово когда закончите.</value>
+  </data>
+  <data name="RegistrationComplete" xml:space="preserve">
+    <value>✅ Регистрация завершена! Ваши роли сохранены.</value>
+  </data>
+  <data name="RoleDone" xml:space="preserve">
+    <value>✅ Готово</value>
+  </data>
+
+  <!-- Events -->
+  <data name="NoUpcomingEvents" xml:space="preserve">
+    <value>📅 Нет запланированных событий.</value>
+  </data>
+  <data name="EventCreatedSuccess" xml:space="preserve">
+    <value>✅ Событие успешно создано!</value>
+  </data>
+  <data name="CreateEventPrompt" xml:space="preserve">
+    <value>📅 *Создать Новое Богослужение*
+
+Пожалуйста, предоставьте детали события в следующем формате:
+
+Название
+Дата и Время (ДД/ММ/ГГГГ ЧЧ:ММ)
+Место
+Описание (необязательно)
+Песни (необязательно, по одной на строку)
+
+Пример:
+Воскресное Богослужение
+25/01/2025 10:30
+Главный Зал
+Обычное воскресное утреннее богослужение
+Изумительная Благодать
+Как Велик Наш Бог
+10,000 Причин</value>
+  </data>
+  <data name="InvalidEventFormat" xml:space="preserve">
+    <value>❌ Неверный формат. Пожалуйста, предоставьте как минимум:
+
+Название
+Дата/Время (ДД/ММ/ГГГГ ЧЧ:ММ)
+Место
+
+Или введите /cancel чтобы отменить создание события.</value>
+  </data>
+  <data name="InvalidDateFormat" xml:space="preserve">
+    <value>❌ Неверный формат даты. Пожалуйста, используйте ДД/ММ/ГГГГ ЧЧ:ММ</value>
+  </data>
+  <data name="SelectEventToDelete" xml:space="preserve">
+    <value>🗑 *Выберите событие для удаления:*</value>
+  </data>
+  <data name="NoEventsToDelete" xml:space="preserve">
+    <value>📭 Нет предстоящих событий для удаления.</value>
+  </data>
+  <data name="ConfirmDeletion" xml:space="preserve">
+    <value>⚠️ *Подтвердите Удаление*
+
+Вы уверены что хотите удалить:</value>
+  </data>
+  <data name="EventDeleted" xml:space="preserve">
+    <value>✅ Событие '{0}' успешно удалено.</value>
+  </data>
+  <data name="DeletionCancelled" xml:space="preserve">
+    <value>Удаление отменено.</value>
+  </data>
+  <data name="EventHasAttendees" xml:space="preserve">
+    <value>⚠️ У этого события есть {0} ответов о посещении.</value>
+  </data>
+
+  <!-- Attendance -->
+  <data name="AttendanceYes" xml:space="preserve">
+    <value>✅ Вы будете участвовать!</value>
+  </data>
+  <data name="AttendanceNo" xml:space="preserve">
+    <value>❌ Вы не будете участвовать</value>
+  </data>
+  <data name="AttendanceMaybe" xml:space="preserve">
+    <value>❓ Вы отмечены как возможно</value>
+  </data>
+  <data name="PleaseConfirmAttendance" xml:space="preserve">
+    <value>✅ Пожалуйста, подтвердите ваше участие:</value>
+  </data>
+
+  <!-- Group Messages -->
+  <data name="NewEventAnnouncement" xml:space="preserve">
+    <value>📢 *Новое Богослужение*</value>
+  </data>
+  <data name="EventCancelled" xml:space="preserve">
+    <value>❌ *Событие Отменено*</value>
+  </data>
+  <data name="NextEvent" xml:space="preserve">
+    <value>⏭ *Следующее Событие*</value>
+  </data>
+  <data name="EventStatus" xml:space="preserve">
+    <value>📊 *Статус События: {0}*</value>
+  </data>
+  <data name="AttendanceFor" xml:space="preserve">
+    <value>📋 *Посещаемость для: {0}*</value>
+  </data>
+
+  <!-- Roles -->
+  <data name="YourRoles" xml:space="preserve">
+    <value>Ваши текущие роли:</value>
+  </data>
+  <data name="NoRolesAssigned" xml:space="preserve">
+    <value>Вы еще не выбрали роли. Используйте /register чтобы выбрать ваши роли.</value>
+  </data>
+  <data name="RolesNeeded" xml:space="preserve">
+    <value>⚠️ *Роли Все Еще Необходимы*</value>
+  </data>
+
+  <!-- Buttons -->
+  <data name="ButtonYes" xml:space="preserve">
+    <value>✅ Да</value>
+  </data>
+  <data name="ButtonNo" xml:space="preserve">
+    <value>❌ Нет</value>
+  </data>
+  <data name="ButtonMaybe" xml:space="preserve">
+    <value>🤔 Может быть</value>
+  </data>
+  <data name="ButtonCancel" xml:space="preserve">
+    <value>❌ Отмена</value>
+  </data>
+  <data name="ButtonDelete" xml:space="preserve">
+    <value>✅ Да, Удалить</value>
+  </data>
+  <data name="ButtonViewStatus" xml:space="preserve">
+    <value>📊 Посмотреть Статус</value>
+  </data>
+
+  <!-- Setlist -->
+  <data name="Setlist" xml:space="preserve">
+    <value>🎶 *Список Песен:*</value>
+  </data>
+
+  <!-- Time -->
+  <data name="TimeIn" xml:space="preserve">
+    <value>Через {0}</value>
+  </data>
+  <data name="TimeDaysHours" xml:space="preserve">
+    <value>{0} дней, {1} часов</value>
+  </data>
+  <data name="TimeHoursMinutes" xml:space="preserve">
+    <value>{0} часов, {1} минут</value>
+  </data>
+
+  <!-- Language -->
+  <data name="SelectLanguage" xml:space="preserve">
+    <value>🌐 Выберите ваш язык:</value>
+  </data>
+  <data name="LanguageChanged" xml:space="preserve">
+    <value>✅ Язык изменен на Русский</value>
+  </data>
+
+  <!-- Role Names -->
+  <data name="Role.Vocals" xml:space="preserve">
+    <value>Вокал</value>
+  </data>
+  <data name="Role.Guitar" xml:space="preserve">
+    <value>Гитара</value>
+  </data>
+  <data name="Role.Bass" xml:space="preserve">
+    <value>Бас</value>
+  </data>
+  <data name="Role.Drums" xml:space="preserve">
+    <value>Барабаны</value>
+  </data>
+  <data name="Role.Percussion" xml:space="preserve">
+    <value>Перкуссия</value>
+  </data>
+  <data name="Role.Keyboard" xml:space="preserve">
+    <value>Клавиши</value>
+  </data>
+  <data name="Role.SoundTech" xml:space="preserve">
+    <value>Звукорежиссер</value>
+  </data>
+  <data name="Role.Media" xml:space="preserve">
+    <value>Медиа</value>
+  </data>
+  <data name="Role.Prayer" xml:space="preserve">
+    <value>Молитва</value>
+  </data>
+
+  <!-- Admin Panel -->
+  <data name="AdminPanel" xml:space="preserve">
+    <value>🛠 *Панель Администратора*
+
+Доступные действия администратора:
+/newevent - Создать новое богослужение
+/deleteevent - Удалить событие
+/remind - Отправить напоминание для следующего события
+/makeadmin @username - Предоставить права администратора
+/removeadmin @username - Отозвать права администратора</value>
+  </data>
+
+  <!-- Reminders -->
+  <data name="ReminderSent" xml:space="preserve">
+    <value>✅ Напоминание отправлено {0} подтвержденным участникам для:</value>
+  </data>
+  <data name="NoConfirmedAttendees" xml:space="preserve">
+    <value>⚠️ Нет подтвержденных участников для '{0}'</value>
+  </data>
+  <data name="CustomReminderPrompt" xml:space="preserve">
+    <value>📝 Пожалуйста, напишите персонализированное напоминание которое вы хотите отправить всем подтвержденным участникам следующего события.
+
+Введите /cancel чтобы отменить.</value>
+  </data>
+
+  <!-- Additional Messages -->
+  <data name="EventReminder" xml:space="preserve">
+    <value>Напоминание о мероприятии</value>
+  </data>
+  <data name="EventTitle" xml:space="preserve">
+    <value>Мероприятие</value>
+  </data>
+  <data name="MessageFromAdmin" xml:space="preserve">
+    <value>Сообщение от админа</value>
+  </data>
+  <data name="NoConfirmationsYet" xml:space="preserve">
+    <value>Пока нет подтверждений</value>
+  </data>
+
+  <!-- Event Creation Wizard -->
+  <data name="WizardTemplateSunday" xml:space="preserve">
+    <value>Воскресное служение</value>
+  </data>
+  <data name="WizardTemplateRehearsal" xml:space="preserve">
+    <value>Репетиция</value>
+  </data>
+  <data name="EventNotFound" xml:space="preserve">
+    <value>Мероприятие не найдено</value>
+  </data>
+  <data name="StatusSentPrivate" xml:space="preserve">
+    <value>Детали отправлены в личное сообщение</value>
+  </data>
+  <data name="AttendanceSummary" xml:space="preserve">
+    <value>📊 *Сводка посещаемости*</value>
+  </data>
+  <data name="RoleCoverage" xml:space="preserve">
+    <value>📋 *Покрытие ролей*</value>
+  </data>
+  <data name="WizardSelectDate" xml:space="preserve">
+    <value>📅 *Выберите дату*</value>
+  </data>
+  <data name="WizardSelectTime" xml:space="preserve">
+    <value>🕐 *Выберите время*</value>
+  </data>
+  <data name="WizardSelectLocation" xml:space="preserve">
+    <value>📍 *Выберите место*</value>
+  </data>
+  <data name="WizardAddSongs" xml:space="preserve">
+    <value>🎶 *Добавить песни?*</value>
+  </data>
+  <data name="WizardConfirm" xml:space="preserve">
+    <value>✅ *Подтвердить создание мероприятия*</value>
+  </data>
+  <data name="WizardEnterTitle" xml:space="preserve">
+    <value>📝 *Введите название мероприятия*</value>
+  </data>
+  <data name="WizardEnterDate" xml:space="preserve">
+    <value>📅 *Введите дату*</value>
+  </data>
+  <data name="WizardEnterTime" xml:space="preserve">
+    <value>🕐 *Введите время*</value>
+  </data>
+  <data name="WizardEnterLocation" xml:space="preserve">
+    <value>📍 *Введите место*</value>
+  </data>
+  <data name="WizardEnterSongs" xml:space="preserve">
+    <value>🎵 *Введите песни*</value>
+  </data>
+  <data name="WizardBack" xml:space="preserve">
+    <value>◀️ Назад</value>
+  </data>
+  <data name="WizardCustomDate" xml:space="preserve">
+    <value>📅 Другая дата</value>
+  </data>
+  <data name="WizardCustomTime" xml:space="preserve">
+    <value>🕐 Другое время</value>
+  </data>
+  <data name="WizardCustomLocation" xml:space="preserve">
+    <value>📍 Другое место</value>
+  </data>
+  <data name="WizardAddSongsButton" xml:space="preserve">
+    <value>🎵 Добавить песни</value>
+  </data>
+  <data name="WizardSkipSongs" xml:space="preserve">
+    <value>⏭️ Пропустить</value>
+  </data>
+  <data name="WizardCreateEvent" xml:space="preserve">
+    <value>✅ Создать мероприятие</value>
+  </data>
+  <data name="WizardEdit" xml:space="preserve">
+    <value>✏️ Редактировать</value>
+  </data>
+  <data name="ViewStatusButton" xml:space="preserve">
+    <value>📊 Посмотреть статус</value>
+  </data>
+</root>

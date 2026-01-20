@@ -22,6 +22,9 @@ public class User
 
     public bool IsAdmin { get; set; }
 
+    [MaxLength(10)]
+    public string LanguageCode { get; set; } = "en";
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime? LastActiveAt { get; set; }

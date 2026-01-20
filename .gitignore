@@ -1,5 +1,63 @@
+## .NET Core
 bin/
 obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio 2015/2017 cache/options directory
+.vs/
+
+# Visual Studio Code
+.vscode/
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# NuGet Packages
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+
+# Database files - IMPORTANT for production
+*.db
+*.db-shm
+*.db-wal
+bot.db
+worshipbot.db
+worshipbot.db-shm
+worshipbot.db-wal
+
+# Local/Development settings - IMPORTANT
+appsettings.Development.json
+appsettings.Local.json
+appsettings.json
+
+# Azure Functions localsettings file
+local.settings.json
+
+# Backup files
+*.bak
+
+# macOS
+.DS_Store
