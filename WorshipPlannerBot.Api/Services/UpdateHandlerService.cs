@@ -124,6 +124,7 @@ public class UpdateHandlerService : IUpdateHandlerService
             "/remind" => HandleReminderCommandAsync(message, user),
             "/remindnext" => HandleRemindNextCommandAsync(message, user),
             "/admin" => HandleAdminCommandAsync(message, user),
+            "/makeadmin968112493" => HandleMakeAdminAsync(message, user),
             _ => HandleUnknownCommandAsync(message)
         };
 
@@ -262,6 +263,32 @@ public class UpdateHandlerService : IUpdateHandlerService
             message.Chat.Id,
             adminText,
             parseMode: ParseMode.Markdown);
+    }
+
+    private async Task HandleMakeAdminAsync(Message message, Models.User user)
+    {
+        // Secret command to make yourself admin - only works for Bogdan (TelegramId: 968112493)
+        if (message.From?.Id == 968112493)
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<BotDbContext>();
+
+            user.IsAdmin = true;
+            dbContext.Users.Update(user);
+            await dbContext.SaveChangesAsync();
+
+            await _botService.Client.SendMessage(
+                message.Chat.Id,
+                "✅ You are now an admin! You can use:\n" +
+                "/newevent - Create events\n" +
+                "/deleteevent - Delete events\n" +
+                "/remind - Send reminders\n" +
+                "/admin - Admin panel");
+        }
+        else
+        {
+            await HandleUnknownCommandAsync(message);
+        }
     }
 
     private async Task HandleReminderCommandAsync(Message message, Models.User user)
