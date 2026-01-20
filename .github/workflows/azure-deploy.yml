@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_WEBAPP_NAME: worship-bot-bogdan    # Your Azure app name
+  AZURE_WEBAPP_NAME: worship-planner-bogdan    # Your Azure app name
   AZURE_WEBAPP_PACKAGE_PATH: './WorshipPlannerBot.Api'
   DOTNET_VERSION: '8.0.x'
 
