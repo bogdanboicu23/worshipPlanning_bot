@@ -218,16 +218,42 @@ public class CallbackHandler
         await _botService.Client.AnswerCallbackQuery(callbackQuery.Id, responseText);
     }
 
+    private string EscapeMarkdown(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+            return text;
+
+        // Escape markdown special characters
+        return text.Replace("_", "\\_")
+                   .Replace("*", "\\*")
+                   .Replace("[", "\\[")
+                   .Replace("]", "\\]")
+                   .Replace("(", "\\(")
+                   .Replace(")", "\\)")
+                   .Replace("~", "\\~")
+                   .Replace("`", "\\`")
+                   .Replace(">", "\\>")
+                   .Replace("#", "\\#")
+                   .Replace("+", "\\+")
+                   .Replace("-", "\\-")
+                   .Replace("=", "\\=")
+                   .Replace("|", "\\|")
+                   .Replace("{", "\\{")
+                   .Replace("}", "\\}")
+                   .Replace(".", "\\.")
+                   .Replace("!", "\\!");
+    }
+
     private string FormatEventMessage(Event evt, string languageCode)
     {
         var sb = new System.Text.StringBuilder();
-        sb.AppendLine($"🎵 *{evt.Title}*");
+        sb.AppendLine($"🎵 *{EscapeMarkdown(evt.Title)}*");
         sb.AppendLine($"📅 {evt.DateTime.ToLocalTime():dddd, dd MMMM yyyy}");
         sb.AppendLine($"🕐 {evt.DateTime.ToLocalTime():HH:mm}");
-        sb.AppendLine($"📍 {evt.Location}");
+        sb.AppendLine($"📍 {EscapeMarkdown(evt.Location)}");
 
         if (!string.IsNullOrEmpty(evt.Description))
-            sb.AppendLine($"📝 {evt.Description}");
+            sb.AppendLine($"📝 {EscapeMarkdown(evt.Description)}");
 
         // Add setlist if available
         if (evt.SetListItems != null && evt.SetListItems.Any())
@@ -238,13 +264,13 @@ public class CallbackHandler
             {
                 if (item.ItemType == Models.Setlist.SetListItemType.Song && item.Song != null)
                 {
-                    var songInfo = $"  {item.OrderIndex + 1}. {item.Song.Title}";
+                    var songInfo = $"  {item.OrderIndex + 1}. {EscapeMarkdown(item.Song.Title)}";
                     var details = new List<string>();
 
                     if (!string.IsNullOrEmpty(item.Song.Key))
-                        details.Add(item.Song.Key);
+                        details.Add(EscapeMarkdown(item.Song.Key));
                     if (!string.IsNullOrEmpty(item.Song.Tempo))
-                        details.Add($"{item.Song.Tempo} BPM");
+                        details.Add($"{EscapeMarkdown(item.Song.Tempo)} BPM");
 
                     if (details.Any())
                         songInfo += $" ({string.Join(", ", details)})";
@@ -271,11 +297,11 @@ public class CallbackHandler
         {
             foreach (var roleGroup in attendanceByRole)
             {
-                var users = string.Join(", ", roleGroup.Select(x => x.User.FullName));
+                var users = string.Join(", ", roleGroup.Select(x => EscapeMarkdown(x.User.FullName)));
                 var localizedRoleName = _localization.GetString($"Role.{roleGroup.Key.Name.Replace(" ", "")}", languageCode);
                 if (localizedRoleName == $"Role.{roleGroup.Key.Name.Replace(" ", "")}")
                     localizedRoleName = roleGroup.Key.Name;
-                sb.AppendLine($"{roleGroup.Key.Icon} {localizedRoleName}: {users}");
+                sb.AppendLine($"{roleGroup.Key.Icon} {EscapeMarkdown(localizedRoleName)}: {users}");
             }
         }
 
@@ -485,14 +511,14 @@ public class CallbackHandler
     {
         var sb = new System.Text.StringBuilder();
 
-        sb.AppendLine($"{_localization.GetString("EventStatus", languageCode, evt.Title)}");
+        sb.AppendLine($"{_localization.GetString("EventStatus", languageCode, EscapeMarkdown(evt.Title))}");
         sb.AppendLine();
         sb.AppendLine($"📅 {evt.DateTime.ToLocalTime():dddd, dd MMMM yyyy}");
         sb.AppendLine($"🕐 {evt.DateTime.ToLocalTime():HH:mm}");
-        sb.AppendLine($"📍 {evt.Location}");
+        sb.AppendLine($"📍 {EscapeMarkdown(evt.Location)}");
 
         if (!string.IsNullOrEmpty(evt.Description))
-            sb.AppendLine($"📝 {evt.Description}");
+            sb.AppendLine($"📝 {EscapeMarkdown(evt.Description)}");
 
         // Add setlist if available
         if (evt.SetListItems != null && evt.SetListItems.Any())
@@ -503,13 +529,13 @@ public class CallbackHandler
             {
                 if (item.ItemType == Models.Setlist.SetListItemType.Song && item.Song != null)
                 {
-                    var songInfo = $"  {item.OrderIndex + 1}. {item.Song.Title}";
+                    var songInfo = $"  {item.OrderIndex + 1}. {EscapeMarkdown(item.Song.Title)}";
                     var details = new List<string>();
 
                     if (!string.IsNullOrEmpty(item.Song.Key))
-                        details.Add(item.Song.Key);
+                        details.Add(EscapeMarkdown(item.Song.Key));
                     if (!string.IsNullOrEmpty(item.Song.Tempo))
-                        details.Add($"{item.Song.Tempo} BPM");
+                        details.Add($"{EscapeMarkdown(item.Song.Tempo)} BPM");
 
                     if (details.Any())
                         songInfo += $" ({string.Join(", ", details)})";
@@ -535,7 +561,7 @@ public class CallbackHandler
             {
                 var roles = attendance.User.UserRoles.Select(ur => ur.Role.Icon).ToList();
                 var roleIcons = roles.Any() ? " " + string.Join(" ", roles) : "";
-                sb.AppendLine($"• {attendance.User.FullName}{roleIcons}");
+                sb.AppendLine($"• {EscapeMarkdown(attendance.User.FullName)}{roleIcons}");
             }
         }
 
