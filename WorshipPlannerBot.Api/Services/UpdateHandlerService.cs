@@ -120,6 +120,7 @@ public class UpdateHandlerService : IUpdateHandlerService
             "/newevent" => HandleNewEventCommandAsync(message, user),
             "/events" => HandleEventsCommandAsync(message, user),
             "/songs" => HandleSongsCommandAsync(message, user),
+            "/chords" => HandleChordsCommandAsync(message, user),
             "/deleteevent" => HandleDeleteEventCommandAsync(message, user),
             "/editevent" => HandleEditEventCommandAsync(message, user),
             "/attendance" => HandleAttendanceCommandAsync(message, user),
@@ -170,6 +171,7 @@ public class UpdateHandlerService : IUpdateHandlerService
                       $"/myroles - {_localization.GetString("HelpMyRoles", lang)}\n" +
                       $"/events - {_localization.GetString("HelpEvents", lang)}\n" +
                       $"/songs - {_localization.GetString("HelpSongs", lang)}\n" +
+                      $"/chords - Manage chord charts and lyrics\n" +
                       $"/language - {_localization.GetString("HelpLanguage", lang)}\n" +
                       $"/help - {_localization.GetString("HelpTitle", lang)}\n";
 
@@ -248,6 +250,13 @@ public class UpdateHandlerService : IUpdateHandlerService
         using var scope = _serviceProvider.CreateScope();
         var songManager = scope.ServiceProvider.GetRequiredService<SongManager>();
         await songManager.ShowSongLibrary(message, user);
+    }
+
+    private async Task HandleChordsCommandAsync(Message message, Models.User user)
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var chordChartService = scope.ServiceProvider.GetRequiredService<ChordChartService>();
+        await chordChartService.ShowChordChartMenu(message, user);
     }
 
     private async Task HandleAdminCommandAsync(Message message, Models.User user)
@@ -540,6 +549,13 @@ public class UpdateHandlerService : IUpdateHandlerService
             var songManager = scope.ServiceProvider.GetRequiredService<SongManager>();
             await songManager.HandleSongEditInput(message, user, state);
             _conversationState.ClearUserState(message.From!.Id);
+        }
+        else if (state.State == "chord_add")
+        {
+            // Handle chord chart addition
+            using var scope = _serviceProvider.CreateScope();
+            var chordChartService = scope.ServiceProvider.GetRequiredService<ChordChartService>();
+            await chordChartService.ProcessChordChartInput(message, user);
         }
         else if (state.State == "awaiting_event_details")
         {

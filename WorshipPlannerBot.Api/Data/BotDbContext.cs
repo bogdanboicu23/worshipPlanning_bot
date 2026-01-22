@@ -15,6 +15,7 @@ public class BotDbContext : DbContext
     public DbSet<Attendance> Attendances { get; set; }
     public DbSet<SetListItem> SetListItems { get; set; }
     public DbSet<Song> Songs { get; set; }
+    public DbSet<ChordChart> ChordCharts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -71,8 +72,23 @@ public class BotDbContext : DbContext
 
         modelBuilder.Entity<SetListItem>()
             .HasIndex(si => new { si.EventId, si.OrderIndex });
-        
-        
+
+        // ChordChart configuration
+        modelBuilder.Entity<ChordChart>()
+            .HasOne(cc => cc.Song)
+            .WithMany(s => s.ChordCharts)
+            .HasForeignKey(cc => cc.SongId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ChordChart>()
+            .HasOne(cc => cc.CreatedByUser)
+            .WithMany()
+            .HasForeignKey(cc => cc.CreatedByUserId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<ChordChart>()
+            .HasIndex(cc => new { cc.SongId, cc.Key });
+
         SeedRoles(modelBuilder);
     }
 

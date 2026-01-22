@@ -34,6 +34,5 @@ public class Song
     public DateTime? UpdatedAt { get; set; }
 
     public ICollection<SetListItem> SetListItems { get; set; } = new List<SetListItem>();
-
-
+    public ICollection<ChordChart> ChordCharts { get; set; } = new List<ChordChart>();
 }

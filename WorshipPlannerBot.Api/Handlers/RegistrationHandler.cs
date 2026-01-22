@@ -31,10 +31,7 @@ public class RegistrationHandler
 
     public async Task StartRegistrationAsync(Message message, Models.User user)
     {
-        var text = "🎵 *Registration & Role Selection*\n\n" +
-                  "Select the roles that describe your involvement in worship services.\n" +
-                  "You can select multiple roles by tapping on them.\n" +
-                  "Press ✅ Done when finished.";
+        var text = "🎵Alegeți rolul pe care îl aveți în echipa de închinare!";
 
         var keyboard = await _roleHandler.CreateRoleSelectionKeyboard(user.Id);
 
@@ -63,10 +60,10 @@ public class RegistrationHandler
                 }))
             : "No roles selected";
 
-        var confirmationText = $"✅ *Registration Complete!*\n\n" +
-                              $"Your selected roles:\n{rolesText}\n\n" +
-                              $"You can update your roles anytime using /register\n" +
-                              $"Use /events to see upcoming worship services.";
+        var confirmationText = $"✅ *Registrare cu succes!*\n\n" +
+                              $"Rolurile selectate:\n{rolesText}\n\n" +
+                              $"Va puteti schimba oricand rolurile folosind /register\n" +
+                              $"Utilizati /events ca sa vedeti evenimentele urmatoare.";
 
         await _botService.Client.EditMessageText(
             callbackQuery.Message!.Chat.Id,

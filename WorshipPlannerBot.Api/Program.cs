@@ -38,6 +38,7 @@ builder.Services.AddScoped<RegistrationHandler>();
 builder.Services.AddScoped<CallbackHandler>();
 builder.Services.AddScoped<InlineQueryHandler>();
 builder.Services.AddScoped<SongManager>();
+builder.Services.AddScoped<ChordChartService>();
 
 // Register Reminder Service
 builder.Services.AddScoped<IReminderService, ReminderService>();
