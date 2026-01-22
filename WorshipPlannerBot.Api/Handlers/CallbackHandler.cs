@@ -88,6 +88,10 @@ public class CallbackHandler
         {
             await HandleLanguageCallbackAsync(callbackQuery, user, data);
         }
+        else if (data.StartsWith("chord_"))
+        {
+            await HandleChordCallbackAsync(callbackQuery, user, data);
+        }
         else if (data.StartsWith("wizard_") ||
                  data.StartsWith("song_toggle_") ||
                  data.StartsWith("songs_done") ||
@@ -922,6 +926,76 @@ public class CallbackHandler
         }
 
         return sb.ToString();
+    }
+
+    private async Task HandleChordCallbackAsync(CallbackQuery callbackQuery, Models.User user, string data)
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var chordChartService = scope.ServiceProvider.GetRequiredService<ChordChartService>();
+
+        // Handle chord chart callbacks
+        if (data.StartsWith("chord_song_"))
+        {
+            var songIdStr = data.Replace("chord_song_", "");
+            if (int.TryParse(songIdStr, out var songId))
+            {
+                await chordChartService.HandleChordSongSelection(callbackQuery, songId);
+            }
+        }
+        else if (data.StartsWith("chord_view_"))
+        {
+            var chartIdStr = data.Replace("chord_view_", "");
+            if (int.TryParse(chartIdStr, out var chartId))
+            {
+                await chordChartService.ShowChordChart(callbackQuery, chartId);
+            }
+        }
+        else if (data.StartsWith("chord_add_"))
+        {
+            var songIdStr = data.Replace("chord_add_", "");
+            if (int.TryParse(songIdStr, out var songId))
+            {
+                await chordChartService.StartAddChordChart(callbackQuery, songId);
+            }
+        }
+        else if (data.StartsWith("chord_transpose_"))
+        {
+            if (data.Contains("_to_"))
+            {
+                // Handle actual transposition
+                var parts = data.Split('_');
+                if (parts.Length >= 4 && int.TryParse(parts[2], out var chartId))
+                {
+                    var newKey = parts[parts.Length - 1];
+                    // TODO: Implement actual transpose functionality
+                    await _botService.Client.AnswerCallbackQuery(
+                        callbackQuery.Id,
+                        $"Transposing to {newKey} (coming soon)");
+                }
+            }
+            else
+            {
+                var chartIdStr = data.Replace("chord_transpose_", "");
+                if (int.TryParse(chartIdStr, out var chartId))
+                {
+                    await chordChartService.TransposeChordChart(callbackQuery, chartId);
+                }
+            }
+        }
+        else if (data == "chord_cancel")
+        {
+            await _botService.Client.DeleteMessage(
+                callbackQuery.Message!.Chat.Id,
+                callbackQuery.Message.MessageId);
+            await _botService.Client.AnswerCallbackQuery(
+                callbackQuery.Id,
+                "Cancelled.");
+        }
+        else if (data == "chord_back")
+        {
+            await chordChartService.ShowChordChartMenu(callbackQuery.Message!, user);
+            await _botService.Client.AnswerCallbackQuery(callbackQuery.Id);
+        }
     }
 
     private async Task HandleSongCallbackAsync(CallbackQuery callbackQuery, Models.User user, string data)
