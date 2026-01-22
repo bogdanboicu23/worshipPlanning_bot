@@ -184,13 +184,14 @@ public class ChordChartService
 
         var keyboard = new InlineKeyboardMarkup(buttons);
 
-        var messageText = $"🎸 *{EscapeMarkdown(chart.Song.Title)}*\n";
-        messageText += $"🎵 Key: *{chart.Key}*";
+        var messageText = $"🎸 **{chart.Song.Title}**\n";
+        messageText += $"🎵 Key: **{chart.Key}**";
         if (!string.IsNullOrEmpty(chart.Capo))
             messageText += $" | {chart.Capo}";
         if (!string.IsNullOrEmpty(chart.TimeSignature))
             messageText += $" | {chart.TimeSignature}";
-        messageText += "\n\n";
+        messageText += "\n";
+        messageText += "━━━━━━━━━━━━━━━━━━━━\n\n";
         messageText += formattedContent;
 
         // Telegram message limit is 4096 characters
@@ -359,15 +360,55 @@ public class ChordChartService
                     continue;
                 }
 
-                // Keep ChordPro format but escape markdown
-                var escapedLine = EscapeMarkdown(line);
-                formatted.AppendLine($"`{escapedLine}`");
+                // Handle ChordPro directives
+                if (line.Trim().StartsWith("{") && line.Trim().EndsWith("}"))
+                {
+                    var directive = line.Trim().Trim('{', '}');
+
+                    // Handle section markers
+                    if (directive == "verse")
+                        formatted.AppendLine("\n**[Verse]**");
+                    else if (directive == "chorus")
+                        formatted.AppendLine("\n**[Chorus]**");
+                    else if (directive == "bridge")
+                        formatted.AppendLine("\n**[Bridge]**");
+                    else if (directive == "interlude")
+                        formatted.AppendLine("\n**[Interlude]**");
+                    else if (directive.StartsWith("title:"))
+                        formatted.AppendLine($"🎵 **{directive.Replace("title:", "").Trim()}**\n");
+                    else if (directive.StartsWith("artist:"))
+                        formatted.AppendLine($"👤 {directive.Replace("artist:", "").Trim()}\n");
+                    continue;
+                }
+
+                // Process chord lines
+                var processedLine = ProcessChordProLine(line);
+                formatted.AppendLine(processedLine);
             }
 
             return formatted.ToString();
         }
 
         return EscapeMarkdown(chart.Content);
+    }
+
+    private string ProcessChordProLine(string line)
+    {
+        // If the line contains chords in brackets, format them nicely
+        if (line.Contains('[') && line.Contains(']'))
+        {
+            // Replace chord brackets with bold formatting
+            var result = line;
+
+            // Find all chords and replace [chord] with bold chord
+            var chordPattern = @"\[([^\]]+)\]";
+            result = System.Text.RegularExpressions.Regex.Replace(result, chordPattern, "*$1*");
+
+            return result;
+        }
+
+        // No chords in this line, return as is
+        return line;
     }
 
     private string EscapeMarkdown(string text)
