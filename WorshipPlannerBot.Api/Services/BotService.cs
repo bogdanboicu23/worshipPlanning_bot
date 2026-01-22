@@ -51,6 +51,34 @@ public class BotService : IBotService
             return false;
         }
     }
+
+    public async Task SetBotCommandsAsync()
+    {
+        try
+        {
+            var commands = new List<BotCommand>
+            {
+                new BotCommand { Command = "start", Description = "Start the bot" },
+                new BotCommand { Command = "help", Description = "Show available commands" },
+                new BotCommand { Command = "register", Description = "Choose your roles" },
+                new BotCommand { Command = "myroles", Description = "View your profile and roles" },
+                new BotCommand { Command = "events", Description = "View upcoming events" },
+                new BotCommand { Command = "songs", Description = "Browse song library" },
+                new BotCommand { Command = "language", Description = "Change language" },
+                new BotCommand { Command = "newevent", Description = "Create new event (Admin)" },
+                new BotCommand { Command = "deleteevent", Description = "Delete an event (Admin)" },
+                new BotCommand { Command = "remind", Description = "Send reminders (Admin)" },
+                new BotCommand { Command = "admin", Description = "Admin panel (Admin)" }
+            };
+
+            await _botClient.SetMyCommands(commands);
+            _logger.LogInformation("Bot commands have been set successfully");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to set bot commands");
+        }
+    }
 }
 
 public interface IBotService
@@ -59,4 +87,5 @@ public interface IBotService
     Task<User> GetBotInfoAsync();
     Task<bool> SetWebhookAsync(string webhookUrl);
     Task<bool> DeleteWebhookAsync();
+    Task SetBotCommandsAsync();
 }

@@ -76,6 +76,10 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<BotDbContext>();
     dbContext.Database.EnsureCreated();
+
+    // Set bot commands for command suggestions
+    var botService = scope.ServiceProvider.GetRequiredService<IBotService>();
+    await botService.SetBotCommandsAsync();
 }
 
 app.Run();
@@ -105,6 +109,9 @@ public class PollingService : BackgroundService
         };
 
         _logger.LogInformation("Starting bot polling...");
+
+        // Set bot commands for command suggestions
+        await _botService.SetBotCommandsAsync();
 
         await _botService.Client.ReceiveAsync(
             HandleUpdateAsync,
