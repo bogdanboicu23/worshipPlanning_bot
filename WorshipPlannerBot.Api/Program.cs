@@ -72,13 +72,12 @@ if (botConfig?.UseWebhook ?? false)
     });
 }
 
-// Ensure database is created and migrations applied
+// Initialize database and apply any schema updates
+await DatabaseInitializer.InitializeAsync(app.Services);
+
+// Set bot commands for command suggestions
 using (var scope = app.Services.CreateScope())
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<BotDbContext>();
-    dbContext.Database.EnsureCreated();
-
-    // Set bot commands for command suggestions
     var botService = scope.ServiceProvider.GetRequiredService<IBotService>();
     await botService.SetBotCommandsAsync();
 }
