@@ -65,7 +65,7 @@ public class ReminderService : IReminderService
                     reminderMessage,
                     parseMode: ParseMode.Markdown);
 
-                _logger.LogInformation($"Reminder sent to {attendee.FirstName} for event {evt.Title}");
+                _logger.LogInformation($"Reminder sent to {attendee.FullName} for event {evt.Title}");
             }
             catch (Exception ex)
             {

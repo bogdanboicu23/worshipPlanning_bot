@@ -179,7 +179,7 @@ public class GroupAnnouncementService : IGroupAnnouncementService
         }
 
         if (creator != null)
-            message += $"\n_Creat de {creator.FirstName}_\n";
+            message += $"\n_Creat de {creator.FullName}_\n";
 
         message += "\n✅ Confirmați prezența:";
 
@@ -232,7 +232,7 @@ public class GroupAnnouncementService : IGroupAnnouncementService
             {
                 var roles = attendance.User.UserRoles.Select(ur => ur.Role.Icon).ToList();
                 var roleIcons = roles.Any() ? string.Join(" ", roles) : "";
-                summary += $"• {attendance.User.FirstName} {roleIcons}\n";
+                summary += $"• {attendance.User.FullName} {roleIcons}\n";
             }
         }
 
@@ -241,7 +241,7 @@ public class GroupAnnouncementService : IGroupAnnouncementService
             summary += $"\n🤔 *Posibil ({maybeUsers.Count})*\n";
             foreach (var attendance in maybeUsers)
             {
-                summary += $"• {attendance.User.FirstName}\n";
+                summary += $"• {attendance.User.FullName}\n";
             }
         }
 
@@ -250,7 +250,7 @@ public class GroupAnnouncementService : IGroupAnnouncementService
             summary += $"\n❌ *Nu pot fi ({declinedUsers.Count})*\n";
             foreach (var attendance in declinedUsers)
             {
-                summary += $"• {attendance.User.FirstName}\n";
+                summary += $"• {attendance.User.FullName}\n";
             }
         }
 

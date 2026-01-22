@@ -35,7 +35,7 @@ public class RoleHandler
 
         var sb = new StringBuilder();
         sb.AppendLine("👤 *Profilul tău*\n");
-        sb.AppendLine($"Nume: {user.FirstName} {user.LastName ?? ""}".Trim());
+        sb.AppendLine($"Nume: {user.FullName}");
         sb.AppendLine($"Username: {(string.IsNullOrEmpty(user.Username) ? "not set" : $"@{user.Username}")}");
         sb.AppendLine($"Admin: {(user.IsAdmin ? "Yes ✅" : "No")}");
         sb.AppendLine("\n*Rolurile tale:*");

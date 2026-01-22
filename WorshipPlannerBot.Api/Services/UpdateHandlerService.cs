@@ -647,17 +647,17 @@ public class UpdateHandlerService : IUpdateHandlerService
 
         var confirmedUsers = nextEvent.Attendances
             .Where(a => a.Status == AttendanceStatus.Yes)
-            .OrderBy(a => a.User.FirstName)
+            .OrderBy(a => a.User.FullName)
             .ToList();
 
         var maybeUsers = nextEvent.Attendances
             .Where(a => a.Status == AttendanceStatus.Maybe)
-            .OrderBy(a => a.User.FirstName)
+            .OrderBy(a => a.User.FullName)
             .ToList();
 
         var declinedUsers = nextEvent.Attendances
             .Where(a => a.Status == AttendanceStatus.No)
-            .OrderBy(a => a.User.FirstName)
+            .OrderBy(a => a.User.FullName)
             .ToList();
 
         var messageText = _localization.GetString("AttendanceFor", user.LanguageCode, nextEvent.Title) + "\n" +
@@ -670,7 +670,7 @@ public class UpdateHandlerService : IUpdateHandlerService
             {
                 var roles = attendance.User.UserRoles.Select(ur => ur.Role.Icon);
                 var roleIcons = roles.Any() ? " " + string.Join("", roles) : "";
-                messageText += $"• {attendance.User.FirstName}{roleIcons}\n";
+                messageText += $"• {attendance.User.FullName}{roleIcons}\n";
             }
         }
 
@@ -679,7 +679,7 @@ public class UpdateHandlerService : IUpdateHandlerService
             messageText += "\n" + _localization.GetString("MaybeLabel", user.LanguageCode, maybeUsers.Count) + "\n";
             foreach (var attendance in maybeUsers)
             {
-                messageText += $"• {attendance.User.FirstName}\n";
+                messageText += $"• {attendance.User.FullName}\n";
             }
         }
 
@@ -688,7 +688,7 @@ public class UpdateHandlerService : IUpdateHandlerService
             messageText += "\n" + _localization.GetString("CantAttendLabel", user.LanguageCode, declinedUsers.Count) + "\n";
             foreach (var attendance in declinedUsers)
             {
-                messageText += $"• {attendance.User.FirstName}\n";
+                messageText += $"• {attendance.User.FullName}\n";
             }
         }
 

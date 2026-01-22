@@ -31,4 +31,6 @@ public class User
 
     public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
     public ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();
+
+    public string FullName => string.IsNullOrEmpty(LastName) ? FirstName : $"{FirstName} {LastName}";
 }

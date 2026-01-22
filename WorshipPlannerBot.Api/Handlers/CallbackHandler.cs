@@ -271,7 +271,7 @@ public class CallbackHandler
         {
             foreach (var roleGroup in attendanceByRole)
             {
-                var users = string.Join(", ", roleGroup.Select(x => x.User.FirstName));
+                var users = string.Join(", ", roleGroup.Select(x => x.User.FullName));
                 var localizedRoleName = _localization.GetString($"Role.{roleGroup.Key.Name.Replace(" ", "")}", languageCode);
                 if (localizedRoleName == $"Role.{roleGroup.Key.Name.Replace(" ", "")}")
                     localizedRoleName = roleGroup.Key.Name;
@@ -531,11 +531,11 @@ public class CallbackHandler
         {
             sb.AppendLine();
             sb.AppendLine(_localization.GetString("ConfirmedLabel", languageCode, confirmedUsers.Count));
-            foreach (var attendance in confirmedUsers.OrderBy(a => a.User.FirstName))
+            foreach (var attendance in confirmedUsers.OrderBy(a => a.User.FullName))
             {
                 var roles = attendance.User.UserRoles.Select(ur => ur.Role.Icon).ToList();
                 var roleIcons = roles.Any() ? " " + string.Join(" ", roles) : "";
-                sb.AppendLine($"• {attendance.User.FirstName}{roleIcons}");
+                sb.AppendLine($"• {attendance.User.FullName}{roleIcons}");
             }
         }
 
@@ -543,9 +543,9 @@ public class CallbackHandler
         {
             sb.AppendLine();
             sb.AppendLine(_localization.GetString("MaybeLabel", languageCode, maybeUsers.Count));
-            foreach (var attendance in maybeUsers.OrderBy(a => a.User.FirstName))
+            foreach (var attendance in maybeUsers.OrderBy(a => a.User.FullName))
             {
-                sb.AppendLine($"• {attendance.User.FirstName}");
+                sb.AppendLine($"• {attendance.User.FullName}");
             }
         }
 
@@ -553,9 +553,9 @@ public class CallbackHandler
         {
             sb.AppendLine();
             sb.AppendLine(_localization.GetString("CantAttendLabel", languageCode, declinedUsers.Count));
-            foreach (var attendance in declinedUsers.OrderBy(a => a.User.FirstName))
+            foreach (var attendance in declinedUsers.OrderBy(a => a.User.FullName))
             {
-                sb.AppendLine($"• {attendance.User.FirstName}");
+                sb.AppendLine($"• {attendance.User.FullName}");
             }
         }
 

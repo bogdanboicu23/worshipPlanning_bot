@@ -253,7 +253,7 @@ public class EventHandler
         {
             foreach (var roleGroup in attendanceByRole)
             {
-                var users = string.Join(", ", roleGroup.Select(x => x.User.FirstName));
+                var users = string.Join(", ", roleGroup.Select(x => x.User.FullName));
                 var localizedRoleName = _localization.GetString($"Role.{roleGroup.Key.Name.Replace(" ", "")}", languageCode);
                 if (localizedRoleName == $"Role.{roleGroup.Key.Name.Replace(" ", "")}")
                     localizedRoleName = roleGroup.Key.Name;
