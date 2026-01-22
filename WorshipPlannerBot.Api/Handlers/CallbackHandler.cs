@@ -76,6 +76,14 @@ public class CallbackHandler
         {
             await HandleDeleteCallbackAsync(callbackQuery, user, data);
         }
+        else if (data.StartsWith("edit_"))
+        {
+            await HandleEditCallbackAsync(callbackQuery, user, data);
+        }
+        else if (data.StartsWith("attendance_view_"))
+        {
+            await HandleAttendanceViewCallbackAsync(callbackQuery, data);
+        }
         else if (data.StartsWith("lang_"))
         {
             await HandleLanguageCallbackAsync(callbackQuery, user, data);
@@ -436,6 +444,315 @@ public class CallbackHandler
 
             await _botService.Client.AnswerCallbackQuery(callbackQuery.Id);
         }
+    }
+
+    private async Task HandleEditCallbackAsync(CallbackQuery callbackQuery, Models.User user, string data)
+    {
+        // Check if user is admin
+        if (!user.IsAdmin)
+        {
+            await _botService.Client.AnswerCallbackQuery(
+                callbackQuery.Id,
+                "⚠️ Only administrators can edit events.");
+            return;
+        }
+
+        if (data == "edit_cancel")
+        {
+            await _botService.Client.DeleteMessage(
+                callbackQuery.Message!.Chat.Id,
+                callbackQuery.Message.MessageId);
+            await _botService.Client.AnswerCallbackQuery(
+                callbackQuery.Id,
+                "Edit cancelled.");
+            return;
+        }
+
+        // Parse the event ID from the callback data
+        var eventIdStr = data.Replace("edit_", "").Split('_')[0];
+        if (!int.TryParse(eventIdStr, out var eventId))
+        {
+            await _botService.Client.AnswerCallbackQuery(
+                callbackQuery.Id,
+                "❌ Invalid event ID.");
+            return;
+        }
+
+        var evt = await _dbContext.Events
+            .Include(e => e.SetListItems)
+            .ThenInclude(si => si.Song)
+            .FirstOrDefaultAsync(e => e.Id == eventId);
+
+        if (evt == null)
+        {
+            await _botService.Client.AnswerCallbackQuery(
+                callbackQuery.Id,
+                "❌ Event not found.");
+            return;
+        }
+
+        // Handle field-specific edit callbacks
+        if (data.Contains("_field_"))
+        {
+            var field = data.Split("_field_")[1];
+            await HandleEventFieldEdit(callbackQuery, evt, field, user);
+            return;
+        }
+
+        // Show edit options menu
+        var editButtons = new List<InlineKeyboardButton[]>
+        {
+            new[] { InlineKeyboardButton.WithCallbackData("📝 Edit Title", $"edit_{eventId}_field_title") },
+            new[] { InlineKeyboardButton.WithCallbackData("📅 Edit Date", $"edit_{eventId}_field_date") },
+            new[] { InlineKeyboardButton.WithCallbackData("🕐 Edit Time", $"edit_{eventId}_field_time") },
+            new[] { InlineKeyboardButton.WithCallbackData("📍 Edit Location", $"edit_{eventId}_field_location") },
+            new[] { InlineKeyboardButton.WithCallbackData("📄 Edit Description", $"edit_{eventId}_field_description") },
+            new[] { InlineKeyboardButton.WithCallbackData("🎵 Edit Setlist", $"edit_{eventId}_field_setlist") },
+            new[] { InlineKeyboardButton.WithCallbackData("❌ Cancel", "edit_cancel") }
+        };
+
+        var keyboard = new InlineKeyboardMarkup(editButtons);
+
+        var messageText = $"✏️ *Edit Event*\n\n" +
+                         $"*{evt.Title}*\n" +
+                         $"📅 {evt.DateTime.ToLocalTime():dddd, dd MMMM yyyy}\n" +
+                         $"🕐 {evt.DateTime.ToLocalTime():HH:mm}\n" +
+                         $"📍 {evt.Location}\n";
+
+        if (!string.IsNullOrEmpty(evt.Description))
+            messageText += $"📝 {evt.Description}\n";
+
+        if (evt.SetListItems != null && evt.SetListItems.Any())
+        {
+            messageText += "\n🎵 *Setlist:*\n";
+            foreach (var item in evt.SetListItems.OrderBy(si => si.OrderIndex))
+            {
+                if (item.Song != null)
+                    messageText += $"  {item.OrderIndex + 1}. {item.Song.Title}\n";
+            }
+        }
+
+        messageText += "\n*Select what you want to edit:*";
+
+        await _botService.Client.EditMessageText(
+            callbackQuery.Message!.Chat.Id,
+            callbackQuery.Message.MessageId,
+            messageText,
+            parseMode: ParseMode.Markdown,
+            replyMarkup: keyboard);
+
+        await _botService.Client.AnswerCallbackQuery(callbackQuery.Id);
+    }
+
+    private async Task HandleEventFieldEdit(CallbackQuery callbackQuery, Event evt, string field, Models.User user)
+    {
+        var messageText = field switch
+        {
+            "title" => "📝 *Edit Title*\n\nCurrent: " + evt.Title + "\n\nSend the new title:",
+            "date" => $"📅 *Edit Date*\n\nCurrent: {evt.DateTime.ToLocalTime():dd/MM/yyyy}\n\nSend the new date (DD/MM/YYYY):",
+            "time" => $"🕐 *Edit Time*\n\nCurrent: {evt.DateTime.ToLocalTime():HH:mm}\n\nSend the new time (HH:MM):",
+            "location" => "📍 *Edit Location*\n\nCurrent: " + evt.Location + "\n\nSend the new location:",
+            "description" => "📄 *Edit Description*\n\nCurrent: " + (evt.Description ?? "None") + "\n\nSend the new description:",
+            "setlist" => "🎵 *Edit Setlist*\n\nSend the songs (one per line) or type 'clear' to remove all songs:",
+            _ => null
+        };
+
+        if (messageText == null)
+        {
+            await _botService.Client.AnswerCallbackQuery(
+                callbackQuery.Id,
+                "Invalid field.");
+            return;
+        }
+
+        // Set conversation state for text input
+        _conversationState.SetUserState(callbackQuery.From.Id, "event_edit", new
+        {
+            EventId = evt.Id,
+            Field = field,
+            MessageId = callbackQuery.Message!.MessageId,
+            ChatId = callbackQuery.Message.Chat.Id
+        });
+
+        await _botService.Client.EditMessageText(
+            callbackQuery.Message!.Chat.Id,
+            callbackQuery.Message.MessageId,
+            messageText,
+            parseMode: ParseMode.Markdown);
+
+        await _botService.Client.AnswerCallbackQuery(
+            callbackQuery.Id,
+            "Please send the new value.");
+    }
+
+    private async Task HandleAttendanceViewCallbackAsync(CallbackQuery callbackQuery, string data)
+    {
+        if (data == "attendance_cancel")
+        {
+            await _botService.Client.DeleteMessage(
+                callbackQuery.Message!.Chat.Id,
+                callbackQuery.Message.MessageId);
+            await _botService.Client.AnswerCallbackQuery(
+                callbackQuery.Id,
+                "Cancelled.");
+            return;
+        }
+
+        var eventIdStr = data.Replace("attendance_view_", "");
+        if (!int.TryParse(eventIdStr, out var eventId))
+        {
+            await _botService.Client.AnswerCallbackQuery(
+                callbackQuery.Id,
+                "❌ Invalid event ID.");
+            return;
+        }
+
+        // Get all users
+        var allUsers = await _dbContext.Users
+            .Include(u => u.UserRoles)
+            .ThenInclude(ur => ur.Role)
+            .OrderBy(u => u.FullName)
+            .ToListAsync();
+
+        // Get the event with attendances
+        var evt = await _dbContext.Events
+            .Include(e => e.Attendances)
+            .ThenInclude(a => a.User)
+            .ThenInclude(u => u.UserRoles)
+            .ThenInclude(ur => ur.Role)
+            .FirstOrDefaultAsync(e => e.Id == eventId);
+
+        if (evt == null)
+        {
+            await _botService.Client.AnswerCallbackQuery(
+                callbackQuery.Id,
+                "❌ Event not found.");
+            return;
+        }
+
+        // Build detailed attendance message
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine($"📊 *Attendance Report*\n");
+        sb.AppendLine($"🎵 *{EscapeMarkdown(evt.Title)}*");
+        sb.AppendLine($"📅 {evt.DateTime.ToLocalTime():dddd, dd MMMM yyyy}");
+        sb.AppendLine($"🕐 {evt.DateTime.ToLocalTime():HH:mm}\n");
+
+        // Get users who responded
+        var respondedUserIds = evt.Attendances.Select(a => a.UserId).ToHashSet();
+        var notRespondedUsers = allUsers.Where(u => !respondedUserIds.Contains(u.Id)).ToList();
+
+        // Group attendances by status
+        var confirmedUsers = evt.Attendances
+            .Where(a => a.Status == AttendanceStatus.Yes)
+            .OrderBy(a => a.User.FullName)
+            .ToList();
+
+        var maybeUsers = evt.Attendances
+            .Where(a => a.Status == AttendanceStatus.Maybe)
+            .OrderBy(a => a.User.FullName)
+            .ToList();
+
+        var declinedUsers = evt.Attendances
+            .Where(a => a.Status == AttendanceStatus.No)
+            .OrderBy(a => a.User.FullName)
+            .ToList();
+
+        // Show confirmed attendees
+        sb.AppendLine($"✅ *Confirmed ({confirmedUsers.Count}):*");
+        if (confirmedUsers.Any())
+        {
+            foreach (var attendance in confirmedUsers)
+            {
+                var roles = attendance.User.UserRoles.Select(ur => ur.Role.Icon);
+                var roleIcons = roles.Any() ? " " + string.Join("", roles) : "";
+                sb.AppendLine($"• {EscapeMarkdown(attendance.User.FullName)}{roleIcons}");
+            }
+        }
+        else
+        {
+            sb.AppendLine("_None_");
+        }
+
+        // Show maybe attendees
+        sb.AppendLine($"\n🤔 *Maybe ({maybeUsers.Count}):*");
+        if (maybeUsers.Any())
+        {
+            foreach (var attendance in maybeUsers)
+            {
+                var roles = attendance.User.UserRoles.Select(ur => ur.Role.Icon);
+                var roleIcons = roles.Any() ? " " + string.Join("", roles) : "";
+                sb.AppendLine($"• {EscapeMarkdown(attendance.User.FullName)}{roleIcons}");
+            }
+        }
+        else
+        {
+            sb.AppendLine("_None_");
+        }
+
+        // Show declined attendees
+        sb.AppendLine($"\n❌ *Declined ({declinedUsers.Count}):*");
+        if (declinedUsers.Any())
+        {
+            foreach (var attendance in declinedUsers)
+            {
+                sb.AppendLine($"• {EscapeMarkdown(attendance.User.FullName)}");
+            }
+        }
+        else
+        {
+            sb.AppendLine("_None_");
+        }
+
+        // Show users who haven't responded
+        sb.AppendLine($"\n⏳ *No Response ({notRespondedUsers.Count}):*");
+        if (notRespondedUsers.Any())
+        {
+            foreach (var notRespondedUser in notRespondedUsers)
+            {
+                var roles = notRespondedUser.UserRoles.Select(ur => ur.Role.Icon);
+                var roleIcons = roles.Any() ? " " + string.Join("", roles) : "";
+                sb.AppendLine($"• {EscapeMarkdown(notRespondedUser.FullName)}{roleIcons}");
+            }
+        }
+        else
+        {
+            sb.AppendLine("_All users have responded_");
+        }
+
+        // Summary statistics
+        sb.AppendLine($"\n📈 *Summary:*");
+        sb.AppendLine($"Total registered users: {allUsers.Count}");
+        sb.AppendLine($"Responses received: {evt.Attendances.Count} ({(evt.Attendances.Count * 100.0 / allUsers.Count):F1}%)");
+
+        // Role coverage
+        var allRoles = await _dbContext.Roles.OrderBy(r => r.DisplayOrder).ToListAsync();
+        var coveredRoles = confirmedUsers
+            .SelectMany(a => a.User.UserRoles.Select(ur => ur.Role))
+            .Distinct()
+            .ToList();
+
+        var missingRoles = allRoles.Where(r => !coveredRoles.Any(cr => cr.Id == r.Id)).ToList();
+
+        if (missingRoles.Any())
+        {
+            sb.AppendLine($"\n⚠️ *Missing roles:*");
+            foreach (var role in missingRoles)
+            {
+                sb.AppendLine($"{role.Icon} {EscapeMarkdown(role.Name)}");
+            }
+        }
+        else
+        {
+            sb.AppendLine($"\n✅ *All roles covered!*");
+        }
+
+        await _botService.Client.EditMessageText(
+            callbackQuery.Message!.Chat.Id,
+            callbackQuery.Message.MessageId,
+            sb.ToString(),
+            parseMode: ParseMode.Markdown);
+
+        await _botService.Client.AnswerCallbackQuery(callbackQuery.Id);
     }
 
     private async Task HandleLanguageCallbackAsync(CallbackQuery callbackQuery, Models.User user, string data)

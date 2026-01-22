@@ -66,6 +66,7 @@ public class BotService : IBotService
                 new BotCommand { Command = "songs", Description = "Browse song library" },
                 new BotCommand { Command = "language", Description = "Change language" },
                 new BotCommand { Command = "newevent", Description = "Create new event (Admin)" },
+                new BotCommand { Command = "editevent", Description = "Edit an event (Admin)" },
                 new BotCommand { Command = "deleteevent", Description = "Delete an event (Admin)" },
                 new BotCommand { Command = "remind", Description = "Send reminders (Admin)" },
                 new BotCommand { Command = "admin", Description = "Admin panel (Admin)" }

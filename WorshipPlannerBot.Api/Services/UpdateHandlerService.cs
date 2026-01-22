@@ -121,6 +121,8 @@ public class UpdateHandlerService : IUpdateHandlerService
             "/events" => HandleEventsCommandAsync(message, user),
             "/songs" => HandleSongsCommandAsync(message, user),
             "/deleteevent" => HandleDeleteEventCommandAsync(message, user),
+            "/editevent" => HandleEditEventCommandAsync(message, user),
+            "/attendance" => HandleAttendanceCommandAsync(message, user),
             "/remind" => HandleReminderCommandAsync(message, user),
             "/remindnext" => HandleRemindNextCommandAsync(message, user),
             "/admin" => HandleAdminCommandAsync(message, user),
@@ -175,6 +177,7 @@ public class UpdateHandlerService : IUpdateHandlerService
         {
             helpText += $"\n{_localization.GetString("AdminCommands", lang)}\n" +
                        $"/newevent - {_localization.GetString("HelpNewEvent", lang)}\n" +
+                       $"/editevent - Edit an existing event\n" +
                        $"/deleteevent - {_localization.GetString("HelpDeleteEvent", lang)}\n" +
                        $"/remind - {_localization.GetString("HelpRemind", lang)}\n" +
                        $"/admin - {_localization.GetString("AdminPanel", lang)}\n";
@@ -386,6 +389,96 @@ public class UpdateHandlerService : IUpdateHandlerService
             replyMarkup: keyboard);
     }
 
+    private async Task HandleEditEventCommandAsync(Message message, Models.User user)
+    {
+        if (!user.IsAdmin)
+        {
+            await _botService.Client.SendMessage(
+                message.Chat.Id,
+                _localization.GetString("AdminOnly", user.LanguageCode));
+            return;
+        }
+
+        using var scope = _serviceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<BotDbContext>();
+
+        var upcomingEvents = await dbContext.Events
+            .Where(e => e.DateTime > DateTime.UtcNow && !e.IsCancelled)
+            .OrderBy(e => e.DateTime)
+            .Take(10)
+            .ToListAsync();
+
+        if (!upcomingEvents.Any())
+        {
+            await _botService.Client.SendMessage(
+                message.Chat.Id,
+                "📭 No upcoming events to edit.");
+            return;
+        }
+
+        var buttons = upcomingEvents.Select((evt, index) => new[]
+        {
+            InlineKeyboardButton.WithCallbackData(
+                $"{evt.Title} - {evt.DateTime.ToLocalTime():dd/MM HH:mm}",
+                $"edit_{evt.Id}")
+        }).ToList();
+
+        buttons.Add(new[] { InlineKeyboardButton.WithCallbackData("❌ Cancel", "edit_cancel") });
+
+        var keyboard = new InlineKeyboardMarkup(buttons);
+
+        await _botService.Client.SendMessage(
+            message.Chat.Id,
+            "📝 *Select an event to edit:*",
+            parseMode: ParseMode.Markdown,
+            replyMarkup: keyboard);
+    }
+
+    private async Task HandleAttendanceCommandAsync(Message message, Models.User user)
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<BotDbContext>();
+
+        // Get all users
+        var allUsers = await dbContext.Users
+            .Include(u => u.UserRoles)
+            .ThenInclude(ur => ur.Role)
+            .OrderBy(u => u.FullName)
+            .ToListAsync();
+
+        // Get upcoming events
+        var upcomingEvents = await dbContext.Events
+            .Where(e => e.DateTime > DateTime.UtcNow && !e.IsCancelled)
+            .OrderBy(e => e.DateTime)
+            .Take(10)
+            .ToListAsync();
+
+        if (!upcomingEvents.Any())
+        {
+            await _botService.Client.SendMessage(
+                message.Chat.Id,
+                "📭 No upcoming events to check attendance.");
+            return;
+        }
+
+        var buttons = upcomingEvents.Select(evt => new[]
+        {
+            InlineKeyboardButton.WithCallbackData(
+                $"{evt.Title} - {evt.DateTime.ToLocalTime():dd/MM HH:mm}",
+                $"attendance_view_{evt.Id}")
+        }).ToList();
+
+        buttons.Add(new[] { InlineKeyboardButton.WithCallbackData("❌ Cancel", "attendance_cancel") });
+
+        var keyboard = new InlineKeyboardMarkup(buttons);
+
+        await _botService.Client.SendMessage(
+            message.Chat.Id,
+            "📊 *Select an event to view detailed attendance:*",
+            parseMode: ParseMode.Markdown,
+            replyMarkup: keyboard);
+    }
+
     private async Task HandleRemindNextCommandAsync(Message message, Models.User user)
     {
         if (!user.IsAdmin)
@@ -466,6 +559,12 @@ public class UpdateHandlerService : IUpdateHandlerService
             await eventHandler.CreateEventAsync(message, user, lines);
 
             // Clear conversation state after processing
+            _conversationState.ClearUserState(message.From!.Id);
+        }
+        else if (state.State == "event_edit")
+        {
+            // Handle event field editing
+            await HandleEventEditInput(message, user, state);
             _conversationState.ClearUserState(message.From!.Id);
         }
         else if (state.State == "awaiting_reminder_message")
@@ -721,6 +820,196 @@ public class UpdateHandlerService : IUpdateHandlerService
             messageText,
             parseMode: ParseMode.Markdown,
             messageThreadId: message.MessageThreadId);
+    }
+
+    private async Task HandleEventEditInput(Message message, Models.User user, ConversationState state)
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<BotDbContext>();
+
+        dynamic stateData = state.Data!;
+        int eventId = stateData.EventId;
+        string field = stateData.Field;
+        int messageId = stateData.MessageId;
+        long chatId = stateData.ChatId;
+
+        var evt = await dbContext.Events
+            .Include(e => e.SetListItems)
+            .ThenInclude(si => si.Song)
+            .FirstOrDefaultAsync(e => e.Id == eventId);
+
+        if (evt == null)
+        {
+            await _botService.Client.SendMessage(
+                message.Chat.Id,
+                "❌ Event not found.");
+            return;
+        }
+
+        var input = message.Text?.Trim() ?? "";
+        bool success = false;
+        string resultMessage = "";
+
+        try
+        {
+            switch (field)
+            {
+                case "title":
+                    if (!string.IsNullOrWhiteSpace(input))
+                    {
+                        evt.Title = input;
+                        evt.UpdatedAt = DateTime.UtcNow;
+                        success = true;
+                        resultMessage = $"✅ Title updated to: {input}";
+                    }
+                    break;
+
+                case "date":
+                    if (DateTime.TryParseExact(input, "dd/MM/yyyy",
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        System.Globalization.DateTimeStyles.None, out var newDate))
+                    {
+                        evt.DateTime = new DateTime(newDate.Year, newDate.Month, newDate.Day,
+                            evt.DateTime.Hour, evt.DateTime.Minute, 0, DateTimeKind.Utc);
+                        evt.UpdatedAt = DateTime.UtcNow;
+                        success = true;
+                        resultMessage = $"✅ Date updated to: {newDate:dd/MM/yyyy}";
+                    }
+                    else
+                    {
+                        resultMessage = "❌ Invalid date format. Please use DD/MM/YYYY";
+                    }
+                    break;
+
+                case "time":
+                    if (DateTime.TryParseExact(input, "HH:mm",
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        System.Globalization.DateTimeStyles.None, out var newTime))
+                    {
+                        evt.DateTime = new DateTime(evt.DateTime.Year, evt.DateTime.Month, evt.DateTime.Day,
+                            newTime.Hour, newTime.Minute, 0, DateTimeKind.Utc);
+                        evt.UpdatedAt = DateTime.UtcNow;
+                        success = true;
+                        resultMessage = $"✅ Time updated to: {newTime:HH:mm}";
+                    }
+                    else
+                    {
+                        resultMessage = "❌ Invalid time format. Please use HH:MM";
+                    }
+                    break;
+
+                case "location":
+                    if (!string.IsNullOrWhiteSpace(input))
+                    {
+                        evt.Location = input;
+                        evt.UpdatedAt = DateTime.UtcNow;
+                        success = true;
+                        resultMessage = $"✅ Location updated to: {input}";
+                    }
+                    break;
+
+                case "description":
+                    evt.Description = string.IsNullOrWhiteSpace(input) ? null : input;
+                    evt.UpdatedAt = DateTime.UtcNow;
+                    success = true;
+                    resultMessage = $"✅ Description updated";
+                    break;
+
+                case "setlist":
+                    if (input.ToLower() == "clear")
+                    {
+                        // Remove all setlist items
+                        dbContext.SetListItems.RemoveRange(evt.SetListItems);
+                        success = true;
+                        resultMessage = "✅ Setlist cleared";
+                    }
+                    else
+                    {
+                        // Parse and update setlist
+                        var songTitles = input.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                            .Select(s => s.Trim())
+                            .Where(s => !string.IsNullOrWhiteSpace(s))
+                            .ToList();
+
+                        if (songTitles.Any())
+                        {
+                            // Remove existing setlist items
+                            dbContext.SetListItems.RemoveRange(evt.SetListItems);
+
+                            // Add new songs
+                            var orderIndex = 0;
+                            foreach (var songTitle in songTitles)
+                            {
+                                // Check if song exists
+                                var song = await dbContext.Songs
+                                    .FirstOrDefaultAsync(s => s.Title.ToLower() == songTitle.ToLower());
+
+                                if (song == null)
+                                {
+                                    // Create new song
+                                    song = new Models.Setlist.Song
+                                    {
+                                        Title = songTitle,
+                                        CreatedAt = DateTime.UtcNow
+                                    };
+                                    dbContext.Songs.Add(song);
+                                    await dbContext.SaveChangesAsync();
+                                }
+
+                                // Add to setlist
+                                var setlistItem = new Models.Setlist.SetListItem
+                                {
+                                    EventId = evt.Id,
+                                    SongId = song.Id,
+                                    OrderIndex = orderIndex++,
+                                    ItemType = Models.Setlist.SetListItemType.Song
+                                };
+                                dbContext.SetListItems.Add(setlistItem);
+                            }
+
+                            success = true;
+                            resultMessage = $"✅ Setlist updated with {songTitles.Count} songs";
+                        }
+                    }
+                    evt.UpdatedAt = DateTime.UtcNow;
+                    break;
+            }
+
+            if (success)
+            {
+                await dbContext.SaveChangesAsync();
+
+                // Send success message
+                await _botService.Client.SendMessage(
+                    message.Chat.Id,
+                    resultMessage + "\n\n✨ Event successfully updated!",
+                    parseMode: ParseMode.Markdown);
+
+                // Notify attendees about the update if there are any
+                var attendees = await dbContext.Attendances
+                    .Where(a => a.EventId == evt.Id)
+                    .ToListAsync();
+
+                if (attendees.Any())
+                {
+                    var groupAnnouncementService = scope.ServiceProvider.GetRequiredService<IGroupAnnouncementService>();
+                    await groupAnnouncementService.AnnounceEventUpdateToGroups(evt, $"updated_{field}");
+                }
+            }
+            else if (!string.IsNullOrEmpty(resultMessage))
+            {
+                await _botService.Client.SendMessage(
+                    message.Chat.Id,
+                    resultMessage);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating event field");
+            await _botService.Client.SendMessage(
+                message.Chat.Id,
+                "❌ An error occurred while updating the event. Please try again.");
+        }
     }
 
     private async Task<Models.User> EnsureUserExistsAsync(BotDbContext dbContext, Telegram.Bot.Types.User telegramUser)
