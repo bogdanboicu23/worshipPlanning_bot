@@ -365,19 +365,39 @@ public class ChordChartService
                 {
                     var directive = line.Trim().Trim('{', '}');
 
-                    // Handle section markers
+                    // Handle section markers with better spacing
                     if (directive == "verse")
-                        formatted.AppendLine("\n**[Verse]**");
+                    {
+                        formatted.AppendLine("\n═════════════════");
+                        formatted.AppendLine("**[VERSE]**");
+                        formatted.AppendLine();
+                    }
                     else if (directive == "chorus")
-                        formatted.AppendLine("\n**[Chorus]**");
+                    {
+                        formatted.AppendLine("\n═════════════════");
+                        formatted.AppendLine("**[CHORUS]**");
+                        formatted.AppendLine();
+                    }
                     else if (directive == "bridge")
-                        formatted.AppendLine("\n**[Bridge]**");
+                    {
+                        formatted.AppendLine("\n═════════════════");
+                        formatted.AppendLine("**[BRIDGE]**");
+                        formatted.AppendLine();
+                    }
                     else if (directive == "interlude")
-                        formatted.AppendLine("\n**[Interlude]**");
+                    {
+                        formatted.AppendLine("\n═════════════════");
+                        formatted.AppendLine("**[INTERLUDE]**");
+                        formatted.AppendLine();
+                    }
                     else if (directive.StartsWith("title:"))
+                    {
                         formatted.AppendLine($"🎵 **{directive.Replace("title:", "").Trim()}**\n");
+                    }
                     else if (directive.StartsWith("artist:"))
+                    {
                         formatted.AppendLine($"👤 {directive.Replace("artist:", "").Trim()}\n");
+                    }
                     continue;
                 }
 
@@ -397,12 +417,20 @@ public class ChordChartService
         // If the line contains chords in brackets, format them nicely
         if (line.Contains('[') && line.Contains(']'))
         {
-            // Replace chord brackets with bold formatting
+            // Replace chord brackets with bold formatting and add spacing
             var result = line;
 
-            // Find all chords and replace [chord] with bold chord
+            // Find all chords and replace [chord] with bold chord with spacing
             var chordPattern = @"\[([^\]]+)\]";
-            result = System.Text.RegularExpressions.Regex.Replace(result, chordPattern, "*$1*");
+
+            // Add a space after each chord for better readability
+            result = System.Text.RegularExpressions.Regex.Replace(result, chordPattern, "*$1* ");
+
+            // Clean up any double spaces
+            result = System.Text.RegularExpressions.Regex.Replace(result, @"\s+", " ");
+
+            // Trim the line
+            result = result.Trim();
 
             return result;
         }
