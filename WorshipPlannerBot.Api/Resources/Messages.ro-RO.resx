@@ -416,4 +416,13 @@ Tastează /cancel pentru a anula.</value>
   <data name="ViewStatusButton" xml:space="preserve">
     <value>📊 Vezi Status</value>
   </data>
+  <data name="HelpResend" xml:space="preserve">
+    <value>Retrimite următorul eveniment în grupuri cu butoane de vot</value>
+  </data>
+  <data name="EventResentToGroups" xml:space="preserve">
+    <value>✅ Eveniment retrimis în {0} grup(uri)!</value>
+  </data>
+  <data name="NoGroupsConfigured" xml:space="preserve">
+    <value>❌ Nu sunt grupuri configurate pentru anunțuri.</value>
+  </data>
 </root>
