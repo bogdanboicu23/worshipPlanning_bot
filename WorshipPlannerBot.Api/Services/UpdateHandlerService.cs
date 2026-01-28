@@ -452,7 +452,8 @@ public class UpdateHandlerService : IUpdateHandlerService
         var allUsers = await dbContext.Users
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
-            .OrderBy(u => u.FullName)
+            .OrderBy(u => u.FirstName)
+            .ThenBy(u => u.LastName)
             .ToListAsync();
 
         // Get upcoming events
