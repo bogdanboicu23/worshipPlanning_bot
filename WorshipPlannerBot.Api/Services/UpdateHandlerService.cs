@@ -662,6 +662,7 @@ public class UpdateHandlerService : IUpdateHandlerService
     private async Task HandleNextEventInGroupAsync(Message message, Models.User user)
     {
         using var scope = _serviceProvider.CreateScope();
+        var groupAnnouncementService = scope.ServiceProvider.GetRequiredService<IGroupAnnouncementService>();
         var dbContext = scope.ServiceProvider.GetRequiredService<BotDbContext>();
 
         var nextEvent = await dbContext.Events
@@ -684,55 +685,8 @@ public class UpdateHandlerService : IUpdateHandlerService
             return;
         }
 
-        var timeUntilEvent = nextEvent.DateTime - DateTime.UtcNow;
-        var timeString = timeUntilEvent.Days > 0
-            ? _localization.GetString("TimeDaysHours", user.LanguageCode, timeUntilEvent.Days, timeUntilEvent.Hours)
-            : _localization.GetString("TimeHoursMinutes", user.LanguageCode, timeUntilEvent.Hours, timeUntilEvent.Minutes);
-
-        var confirmedCount = nextEvent.Attendances.Count(a => a.Status == AttendanceStatus.Yes);
-        var maybeCount = nextEvent.Attendances.Count(a => a.Status == AttendanceStatus.Maybe);
-
-        var messageText = _localization.GetString("NextEvent", user.LanguageCode) + "\n\n" +
-                         $"🎵 *{nextEvent.Title}*\n" +
-                         $"📅 {nextEvent.DateTime.ToLocalTime():dddd, dd MMMM yyyy}\n" +
-                         $"🕐 {nextEvent.DateTime.ToLocalTime():HH:mm}\n" +
-                         $"📍 {nextEvent.Location}\n" +
-                         $"⏱ {_localization.GetString("TimeIn", user.LanguageCode, timeString)}\n\n";
-
-        // Add setlist if available
-        if (nextEvent.SetListItems != null && nextEvent.SetListItems.Any())
-        {
-            messageText += _localization.GetString("Setlist", user.LanguageCode) + "\n";
-            foreach (var item in nextEvent.SetListItems.OrderBy(si => si.OrderIndex))
-            {
-                if (item.ItemType == Models.Setlist.SetListItemType.Song && item.Song != null)
-                {
-                    messageText += $"  {item.OrderIndex + 1}. {item.Song.Title}\n";
-                }
-            }
-            messageText += "\n";
-        }
-
-        messageText += $"\n👥 *{_localization.GetString("PleaseConfirmAttendance", user.LanguageCode).Replace("✅ ", "")}*\n" +
-                      _localization.GetString("ConfirmedLabel", user.LanguageCode, confirmedCount).Replace("*", "").Replace("✅ ", "✅ ") + "\n" +
-                      _localization.GetString("MaybeLabel", user.LanguageCode, maybeCount).Replace("*", "").Replace("🤔 ", "🤔 ");
-
-        var keyboard = new InlineKeyboardMarkup(new[]
-        {
-            new[]
-            {
-                InlineKeyboardButton.WithCallbackData("✅ Yes", $"attend_{nextEvent.Id}_yes"),
-                InlineKeyboardButton.WithCallbackData("❌ No", $"attend_{nextEvent.Id}_no"),
-                InlineKeyboardButton.WithCallbackData("🤔 Maybe", $"attend_{nextEvent.Id}_maybe")
-            }
-        });
-
-        await _botService.Client.SendMessage(
-            message.Chat.Id,
-            messageText,
-            parseMode: ParseMode.Markdown,
-            replyMarkup: keyboard,
-            messageThreadId: message.MessageThreadId);
+        // Use the same detailed view as /events command
+        await groupAnnouncementService.SendEventSummaryToGroup(message.Chat.Id, nextEvent, message.MessageThreadId);
     }
 
     private async Task HandleAttendanceInGroupAsync(Message message, Models.User user)
