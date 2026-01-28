@@ -126,6 +126,7 @@ public class UpdateHandlerService : IUpdateHandlerService
             "/attendance" => HandleAttendanceCommandAsync(message, user),
             "/remind" => HandleReminderCommandAsync(message, user),
             "/remindnext" => HandleRemindNextCommandAsync(message, user),
+            "/resend" => HandleResendEventCommandAsync(message, user),
             "/admin" => HandleAdminCommandAsync(message, user),
             "/makeadmin968112493" => HandleMakeAdminAsync(message, user),
             _ => HandleUnknownCommandAsync(message)
@@ -182,6 +183,7 @@ public class UpdateHandlerService : IUpdateHandlerService
                        $"/editevent - Edit an existing event\n" +
                        $"/deleteevent - {_localization.GetString("HelpDeleteEvent", lang)}\n" +
                        $"/remind - {_localization.GetString("HelpRemind", lang)}\n" +
+                       $"/resend - {_localization.GetString("HelpResend", lang)}\n" +
                        $"/admin - {_localization.GetString("AdminPanel", lang)}\n";
         }
 
@@ -504,6 +506,89 @@ public class UpdateHandlerService : IUpdateHandlerService
         await _botService.Client.SendMessage(
             message.Chat.Id,
             _localization.GetString("CustomReminderPrompt", user.LanguageCode));
+    }
+
+    private async Task HandleResendEventCommandAsync(Message message, Models.User user)
+    {
+        if (!user.IsAdmin)
+        {
+            await _botService.Client.SendMessage(
+                message.Chat.Id,
+                _localization.GetString("AdminOnly", user.LanguageCode));
+            return;
+        }
+
+        using var scope = _serviceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<BotDbContext>();
+        var groupAnnouncementService = scope.ServiceProvider.GetRequiredService<IGroupAnnouncementService>();
+        var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+
+        // Get the next upcoming event
+        var nextEvent = await dbContext.Events
+            .Include(e => e.Attendances)
+                .ThenInclude(a => a.User)
+                    .ThenInclude(u => u.UserRoles)
+                        .ThenInclude(ur => ur.Role)
+            .Include(e => e.SetListItems.OrderBy(si => si.OrderIndex))
+                .ThenInclude(si => si.Song)
+            .Where(e => e.DateTime > DateTime.UtcNow && !e.IsCancelled)
+            .OrderBy(e => e.DateTime)
+            .FirstOrDefaultAsync();
+
+        if (nextEvent == null)
+        {
+            await _botService.Client.SendMessage(
+                message.Chat.Id,
+                _localization.GetString("NoUpcomingEvents", user.LanguageCode));
+            return;
+        }
+
+        // Get configured group IDs
+        var groupIdsConfig = configuration["BotConfiguration:GroupChatIds"];
+        if (string.IsNullOrEmpty(groupIdsConfig))
+        {
+            await _botService.Client.SendMessage(
+                message.Chat.Id,
+                "❌ No groups configured for announcements.");
+            return;
+        }
+
+        var groupConfigs = new List<(long GroupId, int? TopicId)>();
+        var configs = groupIdsConfig.Split(',', StringSplitOptions.RemoveEmptyEntries);
+
+        foreach (var config in configs)
+        {
+            var parts = config.Trim().Split(':');
+            if (long.TryParse(parts[0], out var groupId))
+            {
+                var topicId = parts.Length > 1 && int.TryParse(parts[1], out var tid) ? tid : (int?)null;
+                groupConfigs.Add((groupId, topicId));
+            }
+        }
+
+        // Send event to each configured group
+        var sentCount = 0;
+        foreach (var (groupId, topicId) in groupConfigs)
+        {
+            try
+            {
+                await groupAnnouncementService.SendEventSummaryToGroup(groupId, nextEvent, topicId);
+                sentCount++;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to resend event to group {groupId}");
+            }
+        }
+
+        await _botService.Client.SendMessage(
+            message.Chat.Id,
+            $"✅ Event resent to {sentCount} group(s)!\n\n" +
+            $"*{nextEvent.Title}*\n" +
+            $"📅 {nextEvent.DateTime.ToLocalTime():dddd, dd MMMM yyyy}\n" +
+            $"🕐 {nextEvent.DateTime.ToLocalTime():HH:mm}\n\n" +
+            $"People can now vote again on their attendance.",
+            parseMode: ParseMode.Markdown);
     }
 
     private async Task HandleUnknownCommandAsync(Message message)

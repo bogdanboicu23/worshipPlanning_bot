@@ -416,4 +416,13 @@ Type /cancel to cancel.</value>
   <data name="ViewStatusButton" xml:space="preserve">
     <value>📊 View Status</value>
   </data>
+  <data name="HelpResend" xml:space="preserve">
+    <value>Resend next event to groups with voting buttons</value>
+  </data>
+  <data name="EventResentToGroups" xml:space="preserve">
+    <value>✅ Event resent to {0} group(s)!</value>
+  </data>
+  <data name="NoGroupsConfigured" xml:space="preserve">
+    <value>❌ No groups configured for announcements.</value>
+  </data>
 </root>
