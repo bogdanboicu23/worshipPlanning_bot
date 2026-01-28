@@ -615,7 +615,8 @@ public class CallbackHandler
         var allUsers = await _dbContext.Users
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
-            .OrderBy(u => u.FullName)
+            .OrderBy(u => u.FirstName)
+            .ThenBy(u => u.LastName)
             .ToListAsync();
 
         // Get the event with attendances
