@@ -66,7 +66,6 @@ public class LocalizationService : ILocalizationService
     private CultureInfo GetCultureInfo(string languageCode)
     {
         var normalized = NormalizeLanguageCode(languageCode);
-
         // Map to proper culture codes
         var cultureCode = normalized switch
         {

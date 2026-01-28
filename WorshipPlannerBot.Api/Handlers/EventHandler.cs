@@ -263,35 +263,66 @@ public class EventHandler
             }
         }
 
+        // Attendance section
+        var confirmedUsers = evt.Attendances.Where(a => a.Status == AttendanceStatus.Yes).OrderBy(a => a.User.FullName).ToList();
+        var maybeUsers = evt.Attendances.Where(a => a.Status == AttendanceStatus.Maybe).OrderBy(a => a.User.FullName).ToList();
+        var declinedUsers = evt.Attendances.Where(a => a.Status == AttendanceStatus.No).OrderBy(a => a.User.FullName).ToList();
+
         sb.AppendLine($"\n*{_localization.GetString("PleaseConfirmAttendance", languageCode).Replace("✅ ", "")}*");
 
-        var attendanceByRole = evt.Attendances
-            .Where(a => a.Status == AttendanceStatus.Yes)
-            .SelectMany(a => a.User.UserRoles.Select(ur => new { Role = ur.Role, User = a.User }))
-            .GroupBy(x => x.Role)
-            .OrderBy(g => g.Key.DisplayOrder);
-
-        if (!attendanceByRole.Any())
+        // Confirmed users with roles
+        if (confirmedUsers.Any())
         {
-            sb.AppendLine(_localization.GetString("NoConfirmationsYet", languageCode));
+            sb.AppendLine($"\n✅ *Confirmed ({confirmedUsers.Count})*");
+            foreach (var attendance in confirmedUsers)
+            {
+                var roles = attendance.User.UserRoles.Select(ur => ur.Role.Icon).ToList();
+                var roleIcons = roles.Any() ? " " + string.Join("", roles) : "";
+                sb.AppendLine($"• {EscapeMarkdown(attendance.User.FullName)}{roleIcons}");
+            }
         }
         else
         {
-            foreach (var roleGroup in attendanceByRole)
+            sb.AppendLine(_localization.GetString("NoConfirmationsYet", languageCode));
+        }
+
+        // Maybe users
+        if (maybeUsers.Any())
+        {
+            sb.AppendLine($"\n🤔 *Maybe ({maybeUsers.Count})*");
+            foreach (var attendance in maybeUsers)
             {
-                var users = string.Join(", ", roleGroup.Select(x => EscapeMarkdown(x.User.FullName)));
-                var localizedRoleName = _localization.GetString($"Role.{roleGroup.Key.Name.Replace(" ", "")}", languageCode);
-                if (localizedRoleName == $"Role.{roleGroup.Key.Name.Replace(" ", "")}")
-                    localizedRoleName = roleGroup.Key.Name;
-                sb.AppendLine($"{roleGroup.Key.Icon} {EscapeMarkdown(localizedRoleName)}: {users}");
+                sb.AppendLine($"• {EscapeMarkdown(attendance.User.FullName)}");
             }
         }
 
-        var totalYes = evt.Attendances.Count(a => a.Status == AttendanceStatus.Yes);
-        var totalNo = evt.Attendances.Count(a => a.Status == AttendanceStatus.No);
-        var totalMaybe = evt.Attendances.Count(a => a.Status == AttendanceStatus.Maybe);
+        // Declined users
+        if (declinedUsers.Any())
+        {
+            sb.AppendLine($"\n❌ *Declined ({declinedUsers.Count})*");
+            foreach (var attendance in declinedUsers)
+            {
+                sb.AppendLine($"• {EscapeMarkdown(attendance.User.FullName)}");
+            }
+        }
 
-        sb.AppendLine($"\n✅ {_localization.GetString("ButtonYes", languageCode).Replace("✅ ", "")}: {totalYes} | ❌ {_localization.GetString("ButtonNo", languageCode).Replace("❌ ", "")}: {totalNo} | ❓ {_localization.GetString("ButtonMaybe", languageCode).Replace("🤔 ", "")}: {totalMaybe}");
+        // Role coverage for confirmed users
+        var roleGroups = confirmedUsers
+            .SelectMany(a => a.User.UserRoles.Select(ur => ur.Role))
+            .GroupBy(r => r.Name)
+            .OrderBy(g => g.First().DisplayOrder);
+
+        if (roleGroups.Any())
+        {
+            sb.AppendLine("\n📋 *Roles Fulfilled:*");
+            foreach (var roleGroup in roleGroups)
+            {
+                sb.AppendLine($"{roleGroup.First().Icon} {EscapeMarkdown(roleGroup.Key)}: {roleGroup.Count()}");
+            }
+        }
+
+        // Summary counts
+        sb.AppendLine($"\n✅ Total: {confirmedUsers.Count} | ❌ Total: {declinedUsers.Count} | 🤔 Total: {maybeUsers.Count}");
 
         return sb.ToString();
     }
