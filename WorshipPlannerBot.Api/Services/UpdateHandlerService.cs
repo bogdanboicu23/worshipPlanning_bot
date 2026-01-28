@@ -181,6 +181,7 @@ public class UpdateHandlerService : IUpdateHandlerService
                        $"/newevent - {_localization.GetString("HelpNewEvent", lang)}\n" +
                        $"/editevent - Edit an existing event\n" +
                        $"/deleteevent - {_localization.GetString("HelpDeleteEvent", lang)}\n" +
+                       $"/attendance - View detailed attendance report\n" +
                        $"/remind - {_localization.GetString("HelpRemind", lang)}\n" +
                        $"/admin - {_localization.GetString("AdminPanel", lang)}\n";
         }
